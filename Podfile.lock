@@ -1,0 +1,12 @@
+PODS:
+  - ICGVideoTrimmer (1.1)
+
+DEPENDENCIES:
+  - ICGVideoTrimmer
+
+SPEC CHECKSUMS:
+  ICGVideoTrimmer: 1f54de0595af56af2a406f20cdb33c1c440d15cd
+
+PODFILE CHECKSUM: d9b7ac32e0b48f5212f4a17fb36c886153c4cea6
+
+COCOAPODS: 1.0.1
