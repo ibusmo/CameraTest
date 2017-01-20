@@ -153,8 +153,20 @@
                             <color key="progressTintColor" red="0.99607843139999996" green="0.76470588240000004" blue="0.039215686270000001" alpha="1" colorSpace="calibratedRGB"/>
                             <color key="trackTintColor" red="0.86359697580000006" green="0.85912507770000002" blue="0.84942078590000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         </progressView>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="เอาปุ่ม อัดวีดีโอ สีแดง" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YEL-St-AKO">
+                            <rect key="frame" x="84" y="125" width="152" height="21"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <color key="textColor" red="0.40000000600000002" green="0.80000001190000003" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                            <nil key="highlightedColor"/>
+                        </label>
                     </subviews>
                     <color key="backgroundColor" red="0.17575472589999999" green="0.1757494658" blue="0.1757524312" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <variation key="default">
+                        <mask key="subviews">
+                            <exclude reference="YEL-St-AKO"/>
+                        </mask>
+                    </variation>
                 </view>
             </subviews>
             <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>

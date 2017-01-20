@@ -18,7 +18,6 @@
 		1FA06A4B1E24AB46007C0638 /* CameraTestUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FA06A4A1E24AB46007C0638 /* CameraTestUITests.swift */; };
 		1FA06A5A1E24AB53007C0638 /* PetPolarCameraVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FA06A581E24AB53007C0638 /* PetPolarCameraVideoViewController.swift */; };
 		1FA06A5B1E24AB53007C0638 /* PetPolarCameraVideoViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1FA06A591E24AB53007C0638 /* PetPolarCameraVideoViewController.xib */; };
-		2A8C1B620C0A407E1A537178 /* Pods_CameraTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 965882881FA2451E4BCF101D /* Pods_CameraTest.framework */; };
 		4155FA5CE72ACD1C2BC2244E /* Pods_CameraTestTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B817066EDE7D8B622C6981B2 /* Pods_CameraTestTests.framework */; };
 		BFA0FECA897A7BF859A20EB4 /* Pods_CameraTestUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4031256892C7E2BFA09C0B /* Pods_CameraTestUITests.framework */; };
 /* End PBXBuildFile section */
@@ -74,7 +73,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2A8C1B620C0A407E1A537178 /* Pods_CameraTest.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -124,14 +122,14 @@
 			children = (
 				1FA06A581E24AB53007C0638 /* PetPolarCameraVideoViewController.swift */,
 				1FA06A591E24AB53007C0638 /* PetPolarCameraVideoViewController.xib */,
+				1F9AAB7F1E30D2E20082018D /* PetPolarVideoTrimmerViewController.swift */,
+				1F9AAB801E30D2E20082018D /* PetPolarVideoTrimmerViewController.xib */,
 				1FA06A2A1E24AB46007C0638 /* AppDelegate.swift */,
 				1FA06A2C1E24AB46007C0638 /* ViewController.swift */,
 				1FA06A2E1E24AB46007C0638 /* Main.storyboard */,
 				1FA06A311E24AB46007C0638 /* Assets.xcassets */,
 				1FA06A331E24AB46007C0638 /* LaunchScreen.storyboard */,
 				1FA06A361E24AB46007C0638 /* Info.plist */,
-				1F9AAB7F1E30D2E20082018D /* PetPolarVideoTrimmerViewController.swift */,
-				1F9AAB801E30D2E20082018D /* PetPolarVideoTrimmerViewController.xib */,
 			);
 			path = CameraTest;
 			sourceTree = "<group>";

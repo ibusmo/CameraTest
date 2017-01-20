@@ -69,7 +69,7 @@ class PetPolarCameraVideoViewController: UIViewController {
         self.setupCaptureSession()
         self.setupPreviewLayer()
         self.updateCameraConnection()
-        self.changeFlashMode()
+        self.toggleFlash()
         
         self.captureSession?.startRunning()
         
@@ -329,7 +329,7 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
     func toggleFlash() {
         switch cameraMode {
         case .photo:
-            <#code#>
+            self.changeFlashMode()
             
         case .video:
             if let device = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo), device.hasTorch {

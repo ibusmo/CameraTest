@@ -16,7 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        let camera = PetPolarCameraVideoViewController(nibName: "PetPolarCameraVideoViewController", bundle: nil)
+        let camera = PetPolarVideoTrimmerViewController(nibName: "PetPolarVideoTrimmerViewController", bundle: nil)
         self.window?.rootViewController = camera
         self.window?.makeKeyAndVisible()
         return true
