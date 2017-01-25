@@ -29,6 +29,10 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     // Trimmer Layer
     var trimmerLayer = ICGVideoTrimmerView()
     
+    // Trimer setting
+    let minLength: CGFloat = 3.0
+    let maxLength: CGFloat = 15.0
+    
     // Video Player
     var isPlaying: Bool = false
     var isSoundAble: Bool = false
@@ -44,7 +48,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     var asset: AVAsset?
     var url: URL?
     // mark - tempolary asset
-    var tempVideoPath: NSString?
+    let tempVideoPath: String = NSTemporaryDirectory().appending("tmpMov.mov") as String
     var exportSession: AVAssetExportSession?
     
     override func viewDidLoad() {
@@ -52,8 +56,6 @@ class PetPolarVideoTrimmerViewController: UIViewController {
         
         // let sound able to play in iPhone silent mode
         try! AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback, with: [])
-        
-        self.tempVideoPath = NSTemporaryDirectory().appending("tmpMov.mov") as NSString?
     }
     
     // mark - user event
@@ -72,10 +74,11 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     
     func trimVideo() {
         self.deleteTepmFile()
-        let destinationURL: NSURL = NSURL(fileURLWithPath: self.tempVideoPath as! String)
+        let destinationURL: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
         
         if (self.asset != nil && self.url != nil) {
             
+            print("trimVideo() start \(self.tempVideoPath)")
             self.nextButton.isHidden = true
             
             let preferredPreset = AVAssetExportPresetPassthrough
@@ -113,8 +116,12 @@ class PetPolarVideoTrimmerViewController: UIViewController {
                 self.exportSession?.outputURL = destinationURL as URL
                 self.exportSession?.outputFileType = AVFileTypeQuickTimeMovie
                 self.exportSession?.shouldOptimizeForNetworkUse = true
-                self.exportSession?.timeRange = timeRangeForCurrentSlice
+//                self.exportSession?.timeRange = timeRangeForCurrentSlice
                 self.exportSession?.exportAsynchronously(completionHandler: { () -> Void in
+                    
+                    print("trimVideo() finish")
+                    self.nextButton.isHidden = false
+                    
                     switch self.exportSession!.status {
                     case .failed:
                         print("Export failed")
@@ -125,7 +132,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
                         print("Export success")
                         // copy asset to Photo Libraries
                         DispatchQueue.main.async(execute: {
-                            let movieUrl: NSURL = NSURL(fileURLWithPath: self.tempVideoPath as! String)
+                            let movieUrl: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
                             UISaveVideoAtPathToSavedPhotosAlbum(movieUrl.relativePath!, self, #selector(PetPolarVideoTrimmerViewController.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
                         })
                     }
@@ -135,7 +142,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     }
     
     func deleteTepmFile() {
-        let url: NSURL = NSURL(fileURLWithPath: self.tempVideoPath as! String)
+        let url: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
         let fm = FileManager.default
         let exist = fm.fileExists(atPath: url.path!)
         if exist {
@@ -147,9 +154,6 @@ class PetPolarVideoTrimmerViewController: UIViewController {
         } else {
             print("no file by that name")
         }
-        
-        self.nextButton.isHidden = false
-        
     }
     
     func video(videoPath: NSString, didFinishSavingWithError error: NSError?, contextInfo info: AnyObject) {
@@ -202,15 +206,15 @@ extension PetPolarVideoTrimmerViewController: UIImagePickerControllerDelegate {
         DispatchQueue.main.async {
             self.videoPreviewView.layer.addSublayer(self.playerLayer!)
         }
-        self.player?.play()
-        
         // setup video previwer gesture play/pause toggle
         let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(PetPolarVideoTrimmerViewController.tapOnVideoLayer))
         self.videoPreviewView.addGestureRecognizer(tap)
         
+        // set up video player, additional
+        let duration: CGFloat = CGFloat(CMTimeGetSeconds(self.player!.currentItem!.asset.duration))
         self.videoPlaybackPosition = 0.0
         self.startTime = 0.0
-        self.stopTime = 15.0
+        self.stopTime = duration < self.maxLength ? duration : self.maxLength
         self.soundToggle()
         self.tapOnVideoLayer()
         
@@ -223,16 +227,19 @@ extension PetPolarVideoTrimmerViewController: UIImagePickerControllerDelegate {
         self.trimmerLayer.asset = self.asset
         self.trimmerLayer.showsRulerView = true
         self.trimmerLayer.isHidden = false
-        self.trimmerLayer.minLength = 3.0
-        self.trimmerLayer.maxLength = 15.0
+        self.trimmerLayer.minLength = self.minLength
+        self.trimmerLayer.maxLength = duration < self.maxLength ? duration : self.maxLength
         self.trimmerLayer.delegate = self
         
         // important: reset subviews
         self.trimmerLayer.resetSubviews()
-        self.trimmerLayer.backgroundColor = UIColor.gray
         
         self.trimmerView.addSubview(self.trimmerLayer)
         
+        print("duration:\(duration)")
+        print("startTime:\(self.startTime) stopTime:\(self.stopTime)")
+        print("minLength:\(self.minLength) maxLength:\(self.maxLength)")
+        print("minLength:\(self.trimmerLayer.minLength) maxLength:\(self.trimmerLayer.maxLength)")
     }
     
 }
@@ -246,6 +253,7 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
     // mark - ICGVideoTrimmerDelegate
     
     func trimmerView(_ trimmerView: ICGVideoTrimmerView!, didChangeLeftPosition startTime: CGFloat, rightPosition endTime: CGFloat) {
+        print("trimmerView didChangeLeftPosition \(startTime) \(endTime)")
         if startTime != self.startTime {
             // Move the left position to rearrange the bar
             self.seekVideoToPos(pos: startTime)
@@ -305,7 +313,7 @@ extension PetPolarVideoTrimmerViewController: PetPolarVideoTrimmerVideoPlayerDel
     }
     
     func seekVideoToPos(pos: CGFloat) {
-        print("seekVideoToPos() pos: \(pos)")
+//        print("seekVideoToPos() pos: \(pos)")
         self.videoPlaybackPosition = pos
         let time: CMTime = CMTimeMakeWithSeconds(Float64(pos), self.player!.currentTime().timescale)
         
