@@ -11,11 +11,12 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="PetPolarVideoTrimmerViewController" customModule="CameraTest" customModuleProvider="target">
             <connections>
+                <outlet property="backNavigationButton" destination="8eW-Uw-boG" id="azk-eK-ena"/>
                 <outlet property="coverModeButton" destination="K3Z-DF-BZ4" id="syT-Xe-25g"/>
-                <outlet property="soundToggleButton" destination="CG9-cc-q71" id="VK9-bI-rvT"/>
+                <outlet property="muteButton" destination="CG9-cc-q71" id="t6c-9D-sGw"/>
+                <outlet property="nextButton" destination="aOG-jO-lOa" id="CLA-AW-iTW"/>
                 <outlet property="trimModeButton" destination="UtR-xY-4AH" id="Lay-6U-s08"/>
                 <outlet property="trimmerView" destination="fQ6-d1-P2O" id="ykR-rD-jgb"/>
-                <outlet property="videoPreviewLayer" destination="Q85-vh-EVc" id="W4v-tD-fVT"/>
                 <outlet property="videoPreviewView" destination="Q85-vh-EVc" id="2FI-5Z-pgP"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
@@ -35,6 +36,9 @@
                             <state key="normal" image="close">
                                 <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </state>
+                            <connections>
+                                <action selector="backNavigationDidTap:" destination="-1" eventType="touchUpInside" id="rK4-XY-7oT"/>
+                            </connections>
                         </button>
                         <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="aOG-jO-lOa">
                             <rect key="frame" x="267" y="5" width="53" height="40"/>
@@ -43,13 +47,19 @@
                             <state key="normal" title="Next">
                                 <color key="titleColor" red="0.1647058824" green="0.69019607839999997" blue="0.51764705879999995" alpha="1" colorSpace="calibratedRGB"/>
                             </state>
+                            <connections>
+                                <action selector="nextDidTap:" destination="-1" eventType="touchUpInside" id="0Az-zM-tVA"/>
+                            </connections>
                         </button>
                         <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="CG9-cc-q71">
                             <rect key="frame" x="125" y="10" width="70" height="30"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                            <state key="normal" title="Mute_icon">
+                            <state key="normal" title="Mute">
                                 <color key="titleColor" red="1" green="0.5" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                             </state>
+                            <connections>
+                                <action selector="soundToggleDidTap:" destination="-1" eventType="touchUpInside" id="EZo-iz-vjP"/>
+                            </connections>
                         </button>
                     </subviews>
                     <color key="backgroundColor" red="0.17575472589999999" green="0.1757494658" blue="0.1757524312" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -68,8 +78,24 @@
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             <color key="backgroundColor" red="0.18693576388888888" green="0.18693576388888888" blue="0.18693576388888888" alpha="1" colorSpace="calibratedRGB"/>
                         </view>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="oxL-if-lXl" userLabel="Left View">
+                            <rect key="frame" x="0.0" y="27" width="20" height="100"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <color key="backgroundColor" red="0.13333333333333333" green="0.13333333333333333" blue="0.13333333333333333" alpha="1" colorSpace="calibratedRGB"/>
+                        </view>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="wmQ-4E-n9G" userLabel="Right View">
+                            <rect key="frame" x="300" y="27" width="20" height="100"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <color key="backgroundColor" red="0.13333333333333333" green="0.13333333333333333" blue="0.13333333333333333" alpha="1" colorSpace="calibratedRGB"/>
+                        </view>
                     </subviews>
                     <color key="backgroundColor" red="0.17575472589999999" green="0.1757494658" blue="0.1757524312" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <variation key="default">
+                        <mask key="subviews">
+                            <exclude reference="oxL-if-lXl"/>
+                            <exclude reference="wmQ-4E-n9G"/>
+                        </mask>
+                    </variation>
                 </view>
                 <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="AdX-6V-EFF" userLabel="Bottom">
                     <rect key="frame" x="0.0" y="524" width="320" height="44"/>

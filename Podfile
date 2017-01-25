@@ -6,11 +6,11 @@ target 'CameraTest' do
   use_frameworks!
 
   # Pods for CameraTest
+  pod 'ICGVideoTrimmer'
 
   target 'CameraTestTests' do
     inherit! :search_paths
     # Pods for testing
-    pod 'ICGVideoTrimmer'
   end
 
   target 'CameraTestUITests' do
