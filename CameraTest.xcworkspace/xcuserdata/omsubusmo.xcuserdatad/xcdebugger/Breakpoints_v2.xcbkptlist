@@ -138,12 +138,12 @@
                   moduleName = "CameraTest"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/omsubusmo/Documents/CameraTest/CameraTest/PetPolarVideoTrimmerViewController.swift"
-                  timestampString = "507028254.916522"
+                  timestampString = "507037816.302301"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "129"
-                  endingLineNumber = "129"
-                  offsetFromSymbolStart = "1320">
+                  startingLineNumber = "134"
+                  endingLineNumber = "134"
+                  offsetFromSymbolStart = "1672">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -153,11 +153,11 @@
                   moduleName = "CameraTest"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/omsubusmo/Documents/CameraTest/CameraTest/PetPolarVideoTrimmerViewController.swift"
-                  timestampString = "507028254.918484"
+                  timestampString = "507037816.304249"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "130"
-                  endingLineNumber = "130"
+                  startingLineNumber = "135"
+                  endingLineNumber = "135"
                   offsetFromSymbolStart = "16">
                </Location>
             </Locations>

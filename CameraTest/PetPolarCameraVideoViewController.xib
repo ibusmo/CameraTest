@@ -11,7 +11,7 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="PetPolarCameraVideoViewController" customModule="CameraTest" customModuleProvider="target">
             <connections>
-                <outlet property="cameraView" destination="npH-dn-e6n" id="qZf-gm-R0M"/>
+                <outlet property="previewView" destination="npH-dn-e6n" id="Y2U-YW-Aix"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
         </placeholder>
@@ -112,6 +112,9 @@
                                     <state key="normal" image="swap_cam">
                                         <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     </state>
+                                    <connections>
+                                        <action selector="swapCameraDidTap:" destination="-1" eventType="touchUpInside" id="5uS-6n-ZDK"/>
+                                    </connections>
                                 </button>
                             </subviews>
                             <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
@@ -126,6 +129,9 @@
                                     <state key="normal" image="nflash_off">
                                         <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     </state>
+                                    <connections>
+                                        <action selector="changeFlashModeDidTap:" destination="-1" eventType="touchUpInside" id="CdI-Ge-iep"/>
+                                    </connections>
                                 </button>
                             </subviews>
                             <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>

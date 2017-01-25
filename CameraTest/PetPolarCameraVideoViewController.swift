@@ -13,16 +13,16 @@ enum CameraMode {
     case photo, video
 }
 
-protocol CameraVideoSetup {
-    
-}
+protocol CameraVideoFocusSetup {}
+protocol CameraVideoSetup {}
+
 
 class PetPolarCameraVideoViewController: UIViewController {
     
     var cameraMode: CameraMode = .video
     var isRecording = false
     var cameraSetup = false
-    var flashMode = false
+    var flashMode = true
     
     var cameraCurrent: AVCaptureDevice?
     var cameraFront: AVCaptureDevice?
@@ -44,7 +44,7 @@ class PetPolarCameraVideoViewController: UIViewController {
     
     var previewLayer = AVCaptureVideoPreviewLayer()
     
-    @IBOutlet weak var cameraView: UIView!
+    @IBOutlet weak var previewView: UIView!
 
     override func viewWillAppear(_ animated: Bool) {
     }
@@ -54,43 +54,57 @@ class PetPolarCameraVideoViewController: UIViewController {
         self.startCamera()
     }
     
-    // MARK: - camera
-    
-    func startCamera() {
-        if (self.cameraSetup == true) {
-            return
-        }
-        
-        self.setupCameraDevices()
-        if (!self.setupInput()) {
-            return
-        }
-        self.setupOutput()
-        self.setupCaptureSession()
-        self.setupPreviewLayer()
-        self.updateCameraConnection()
-        self.toggleFlash()
-        
-        self.captureSession?.startRunning()
-        
-        self.cameraSetup = true
-    }
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
     @IBAction func TakePhoto(_ sender: Any) {
         switch self.cameraMode {
         case .photo:
             self.takePhotoToLibary()
         case .video:
             self.toggleRecordVideo()
+        }
+    }
+    
+    @IBAction func changeFlashModeDidTap(_ sender: Any) {
+        self.toggleFlash()
+    }
+    
+    @IBAction func swapCameraDidTap(_ sender: Any) {
+        let previousInput: AVCaptureInput = self.inputCurrent!
+        let previousDevice: AVCaptureDevice = self.cameraCurrent!
+        
+        if (self.cameraCurrent == self.cameraBack) {
+            
+        } else {
+            
+        }
+    }
+    
+    // MARK: - camera
+    
+    func startCamera() {
+        if !self.cameraSetup {
+            self.setupCameraDevices()
+            if (self.setupInput()) {
+                self.setupOutput()
+                self.setupCaptureSession()
+                self.setupPreviewLayer()
+                self.updateCameraConnection()
+                self.toggleFlash()
+                
+                self.captureSession?.startRunning()
+                self.cameraSetup = true
+            }
+        }
+    }
+    
+    func toggleRecordVideo(){
+        if !self.isRecording {
+            self.satrtRecordVideo()
+            //            self.toggleFlash()
+            self.isRecording = true
+        } else {
+            self.stopRecordVideo()
+            //            self.toggleFlash()
+            self.isRecording = false
         }
     }
     
@@ -107,36 +121,13 @@ class PetPolarCameraVideoViewController: UIViewController {
         })
     }
     
-    func toggleRecordVideo(){
-        if !self.isRecording {
-            self.recordVideo()
-            self.toggleFlash()
-            self.isRecording = true
-        } else {
-            self.stopRecordVideo()
-            self.toggleFlash()
-            self.isRecording = false
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let point: CGPoint = touchPercent(touch: touches.first! as UITouch)
+        if (self.previewView.frame.contains(point)) {
+            self.focusAtPoint(point: point)
         }
     }
-    
-    func stopRecordVideo() {
-        print("stopRecordVideo()")
-        
-        self.videoOutput?.stopRecording()
-    }
-    
-    func recordVideo() {
-        print("recordVideo() start")
-        
-        let fileName = "mysavefile.mp4";
-        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let filePathUrl = documentsURL.appendingPathComponent(fileName)
-        
-        print("recordVideo() path: \(filePathUrl)")
-        
-        self.videoOutput?.startRecording(toOutputFileURL: filePathUrl, recordingDelegate: self)
-    }
-    
+
 }
 
 extension PetPolarCameraVideoViewController: AVCaptureFileOutputRecordingDelegate {
@@ -204,8 +195,13 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
             print("Error: cameraFront?.lockForConfiguration()")
         }
         
-        self.cameraCurrent = self.cameraBack
+        if (self.cameraBack != nil) {
+            self.cameraCurrent = self.cameraBack
+        } else if (self.cameraFront != nil) {
+            self.cameraCurrent = self.cameraFront
+        }
         
+        self.cameraCurrent = self.cameraFront
     }
     
     func setupInput() -> Bool {
@@ -225,10 +221,11 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
             } else if (self.inputFront != nil) {
                 self.inputCurrent = self.inputFront
             }
-            
         } catch {
             return false
         }
+        
+        self.inputCurrent = self.inputFront
         
         return true
     }
@@ -280,10 +277,10 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
         previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
         previewLayer.connection.videoOrientation = AVCaptureVideoOrientation.portrait
         
-        cameraView.layer.addSublayer(previewLayer)
+        previewView.layer.addSublayer(previewLayer)
         
-        previewLayer.position = CGPoint(x: self.cameraView.frame.width / 2, y: self.cameraView.frame.height / 2)
-        previewLayer.bounds = self.cameraView.bounds
+        previewLayer.position = CGPoint(x: self.previewView.frame.width / 2, y: self.previewView.frame.height / 2)
+        previewLayer.bounds = self.previewView.bounds
     }
     
     func updateCameraConnection() {
@@ -299,7 +296,18 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
         
     }
     
-    func changeFlashMode() -> Bool {
+    func toggleFlash() {
+        switch cameraMode {
+        case .photo:
+            self.changeCameraFlashMode()
+            
+        case .video:
+            self.changeVideoFlashMode()
+            
+        }
+    }
+    
+    func changeCameraFlashMode() -> Bool {
         do {
             self.captureSession?.beginConfiguration()
             try self.cameraCurrent?.lockForConfiguration()
@@ -326,25 +334,167 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
         return self.flashMode
     }
     
-    func toggleFlash() {
-        switch cameraMode {
-        case .photo:
-            self.changeFlashMode()
-            
-        case .video:
-            if let device = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo), device.hasTorch {
+    func changeVideoFlashMode() -> Bool {
+        if let device = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo), device.hasTorch {
+            if (self.cameraCurrent?.isFlashAvailable)! {
                 do {
                     try device.lockForConfiguration()
-                    let torchOn = !device.isTorchActive
                     try device.setTorchModeOnWithLevel(1.0)
-                    device.torchMode = torchOn ? .on : .off
+                    
+                    if (flashMode == true) {
+                        device.torchMode = .off
+                        self.flashMode = false
+                    } else {
+                        device.torchMode = .on
+                        self.flashMode = true
+                    }
+                    
                     device.unlockForConfiguration()
                 } catch {
                     print("error")
                 }
+            } else {
+                print("changeVideoFlashMode flash not support with this camera")
             }
-            
         }
+        return self.flashMode
+    }
+    
+    
+    func satrtRecordVideo() {
+        print("recordVideo() start")
+        
+        let fileName = "mysavefile.mp4";
+        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let filePathUrl = documentsURL.appendingPathComponent(fileName)
+        
+        print("recordVideo() path: \(filePathUrl)")
+        
+        self.videoOutput?.startRecording(toOutputFileURL: filePathUrl, recordingDelegate: self)
+    }
+    
+    func stopRecordVideo() {
+        print("stopRecordVideo()")
+        
+        self.videoOutput?.stopRecording()
+    }
+    
+}
+
+extension PetPolarCameraVideoViewController: CameraVideoFocusSetup {
+    
+    func touchPercent(touch : UITouch) -> CGPoint {
+        let touchPerX = touch.location(in: self.previewView).x
+        let touchPerY = touch.location(in: self.previewView).y
+        // Return the populated CGPoint
+        return CGPoint(x: touchPerX, y: touchPerY)
+    }
+    
+    func focusAtPoint(point: CGPoint) {
+        let device: AVCaptureDevice = self.cameraCurrent!
+        do {
+            let error = try device.lockForConfiguration()
+            
+            let exactFocusPoint: CGPoint = self.getPointOfInterest(coor: point)
+            print(">>>\(point.x), \(point.y) == \(exactFocusPoint.x), \(exactFocusPoint.y)")
+            
+            let focusImage = UIImage(named: "focus")
+            let focusLayer = CALayer()
+            focusLayer.contents = focusImage?.cgImage
+            focusLayer.frame = CGRect(x: point.x-(focusImage!.size.width/2), y: point.y-(focusImage!.size.height/2), width: focusImage!.size.width, height: focusImage!.size.height)
+            
+            let fadeAnim = CABasicAnimation(keyPath: "opacity")
+            fadeAnim.duration = 1.0
+            fadeAnim.fromValue = NSNumber(value: 1.0)
+            fadeAnim.toValue = NSNumber(value: 0.0)
+            fadeAnim.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseIn)
+            
+            focusLayer.add(fadeAnim, forKey: "opacity")
+            
+            focusLayer.opacity = 0.0
+            
+            self.previewLayer.addSublayer(focusLayer)
+            
+            //            focusLayer.removeFromSuperlayer()
+            
+            if (device.isFocusPointOfInterestSupported == true && device.isFocusModeSupported(AVCaptureFocusMode.autoFocus)) {
+                device.focusPointOfInterest = exactFocusPoint
+                device.focusMode = AVCaptureFocusMode.autoFocus
+            }
+            if (device.isExposureModeSupported(AVCaptureExposureMode.continuousAutoExposure)) {
+                device.exposurePointOfInterest = exactFocusPoint
+            }
+            device.unlockForConfiguration()
+        } catch {
+            print("Error: device.lockForConfiguration() \(error)")
+        }
+        
+    }
+    
+    func getPointOfInterest(coor: CGPoint) -> CGPoint{
+        var pointOfInterest: CGPoint = CGPoint(x: 0.5, y: 0.5)
+        let frameSize = self.view.frame.size
+        let videoPreviewLayer: AVCaptureVideoPreviewLayer = self.previewLayer
+        
+        if (videoPreviewLayer.videoGravity == AVLayerVideoGravityResize) {
+            pointOfInterest = CGPoint(x: coor.y / frameSize.height, y: 1.0 - (coor.x / frameSize.width))
+            print("A")
+        } else {
+            var cleanAperture: CGRect?
+            for port in self.inputCurrent!.ports! {
+                if ((port as AnyObject).mediaType == AVMediaTypeVideo) {
+                    // TODO: - ios8
+                    var desc: CMVideoFormatDescription?
+                    if #available(iOS 9.0, *) {
+                        desc = (port as AnyObject).formatDescription
+                    } else {
+                        // Fallback on earlier versions
+                        return CGPoint(x: 0.0, y: 0.0)
+                    }
+                    cleanAperture = CMVideoFormatDescriptionGetCleanAperture(desc!, true)
+                    let apertureSize: CGSize = cleanAperture!.size
+                    let point: CGPoint = coor
+                    let apertureRatio: CGFloat = apertureSize.height / apertureSize.width
+                    let viewRatio: CGFloat = frameSize.width / frameSize.height
+                    var xc: CGFloat = 0.5
+                    var yc: CGFloat = 0.5
+                    
+                    if (videoPreviewLayer.videoGravity == AVLayerVideoGravityResizeAspect) {
+                        if (viewRatio > apertureRatio) {
+                            var y2: CGFloat = frameSize.height
+                            let x2: CGFloat = frameSize.height * apertureRatio
+                            let x1: CGFloat = frameSize.width
+                            let blackBar = (x1 - x2) / 2
+                            if (point.x >= blackBar && point.x <= blackBar + x2) {
+                                xc = point.y / 2
+                                yc = 1.0 - ((point.x - blackBar) / x2)
+                            }
+                        } else {
+                            let y2: CGFloat = frameSize.width
+                            let y1: CGFloat = frameSize.height
+                            let x2: CGFloat = frameSize.width
+                            let blackBar = (y1 - y2) / 2
+                            if (point.y >= blackBar && point.y <= blackBar + y2) {
+                                xc = ((point.y - blackBar) / y2)
+                                yc = 1.0 - (point.x / x2)
+                            }
+                        }
+                    } else if (videoPreviewLayer.videoGravity == AVLayerVideoGravityResizeAspectFill) {
+                        if (viewRatio > apertureRatio) {
+                            let y2: CGFloat = apertureSize.width * (frameSize.width / apertureSize.height)
+                            xc = (point.y + ((y2 - frameSize.height) / 2)) / y2
+                            yc = (frameSize.width - point.x) / frameSize.width
+                        } else {
+                            let x2: CGFloat = apertureSize.height * (frameSize.height / apertureSize.width)
+                            yc = 1 - ((point.x + ((x2 - frameSize.width) / 2)) / x2)
+                            xc = point.y / frameSize.height
+                        }
+                    }
+                    pointOfInterest = CGPoint(x: xc, y: yc)
+                    break
+                }
+            }}
+        return pointOfInterest
     }
     
 }

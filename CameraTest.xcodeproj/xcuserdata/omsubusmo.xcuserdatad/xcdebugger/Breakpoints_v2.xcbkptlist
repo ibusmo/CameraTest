@@ -10,12 +10,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CameraTest/PetPolarCameraVideoViewController.swift"
-            timestampString = "506334926.224829"
+            timestampString = "507037815.147924"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "310"
-            endingLineNumber = "310"
-            landmarkName = "changeFlashMode()"
+            startingLineNumber = "318"
+            endingLineNumber = "318"
+            landmarkName = "changeCameraFlashMode()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
