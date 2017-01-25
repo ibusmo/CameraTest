@@ -54,6 +54,8 @@ class PetPolarVideoTrimmerViewController: UIViewController {
         try! AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback, with: [])
         
         self.tempVideoPath = NSTemporaryDirectory().appending("tmpMov.mov") as NSString?
+        
+        self.selectAsset()
     }
     
     // mark - user event

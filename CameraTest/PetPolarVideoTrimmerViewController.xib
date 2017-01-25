@@ -123,7 +123,7 @@
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             <color key="backgroundColor" red="0.18039215689999999" green="0.73333333329999995" blue="0.58823529409999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         </view>
-                        <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Coo-3i-MW9" userLabel="Cover Under View">
+                        <view hidden="YES" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Coo-3i-MW9" userLabel="Cover Under View">
                             <rect key="frame" x="160" y="41" width="160" height="3"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             <color key="backgroundColor" red="0.18039215689999999" green="0.73333333329999995" blue="0.58823529409999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
