@@ -299,25 +299,33 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
     }
     
     func toggleFlash() {
+        self.flashMode = !self.flashMode
+        
         if (self.cameraInput == .back) {
-            self.flashMode = !self.flashMode
             self.setFlash(staus: self.flashMode)
         } else if (self.cameraInput == .front) {
             self.flashMode = false
         }
+        print("toggleFlash to \(self.flashMode)")
     }
     
     func setFlash(staus: Bool) {
         self.flashMode = staus
-        switch cameraMode {
-        case .photo:
-            self.setCameraFlashMode(status: self.flashMode)
-        case .video:
-            self.setVideoFlashMode(status: self.flashMode)
+        if (self.cameraInput == .back) {
+            switch cameraMode {
+            case .photo:
+                self.setCameraFlashMode(status: self.flashMode)
+            case .video:
+                self.setVideoFlashMode(status: self.flashMode)
+            }
+        } else if (self.cameraInput == .front) {
+            self.flashMode = false
         }
+        print("setFlash to \(self.flashMode)")
     }
     
     func setCameraFlashMode(status: Bool) {
+        print("setCameraFlashMode \(status)")
         do {
             self.captureSession?.beginConfiguration()
             try self.cameraCurrent?.lockForConfiguration()
@@ -339,16 +347,17 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
     }
     
     func setVideoFlashMode(status: Bool) {
+        print("setVideoFlashMode \(status)")
         if let device = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo), device.hasTorch {
             if (self.cameraCurrent?.isFlashAvailable)! {
                 do {
                     try device.lockForConfiguration()
-                    try device.setTorchModeOnWithLevel(1.0)
                     
                     if (status == false) {
                         device.torchMode = .off
                     } else if (status == true) {
                         device.torchMode = .on
+                        try device.setTorchModeOnWithLevel(1.0)
                     }
                     
                     device.unlockForConfiguration()
