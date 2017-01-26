@@ -215,8 +215,8 @@ extension PetPolarVideoTrimmerViewController: UIImagePickerControllerDelegate {
         self.videoPlaybackPosition = 0.0
         self.startTime = 0.0
         self.stopTime = duration < self.maxLength ? duration : self.maxLength
-        self.soundToggle()
-        self.tapOnVideoLayer()
+        self.setSoundState(status: true)
+        self.setVideoState(status: true)
         
         // set properties for trimmer view
         self.trimmerLayer.removeFromSuperview()
@@ -266,26 +266,37 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
 extension PetPolarVideoTrimmerViewController: PetPolarVideoTrimmerVideoPlayerDelegate {
     
     func soundToggle() {
-        if self.isSoundAble {
-            self.player?.volume = 0.0
-            self.muteButton.setTitle("Unmute", for: UIControlState.normal)
-        } else {
+        self.isSoundAble = !self.isSoundAble
+        self.setSoundState(status: self.isSoundAble)
+    }
+    
+    func setSoundState(status: Bool) {
+        self.isSoundAble = status
+        if (status == true) {
             self.player?.volume = 1.0
             self.muteButton.setTitle("Mute", for: UIControlState.normal)
+            
+        } else if (status == false) {
+            self.player?.volume = 0.0
+            self.muteButton.setTitle("Unmute", for: UIControlState.normal)
         }
-        self.isSoundAble = !self.isSoundAble
     }
     
     func tapOnVideoLayer() {
-        if self.isPlaying {
-            self.player?.pause()
-            self.stopPlaybackTimeChecker()
-        } else {
+        self.isPlaying = !self.isPlaying
+        self.setVideoState(status: self.isPlaying)
+    }
+    
+    func setVideoState(status: Bool) {
+        self.isPlaying = status
+        if (status == true) {
             self.player?.play()
             self.startPlaybackTimeChecker()
+        } else if (status == false) {
+            self.player?.pause()
+            self.stopPlaybackTimeChecker()
         }
-        self.isPlaying = !self.isPlaying
-        self.trimmerLayer.hideTracker(!isPlaying)
+        self.trimmerLayer.hideTracker(!status)
     }
     
     func stopPlaybackTimeChecker() {

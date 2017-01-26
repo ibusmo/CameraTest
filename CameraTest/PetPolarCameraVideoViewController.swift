@@ -12,6 +12,9 @@ import AVFoundation
 enum CameraMode {
     case photo, video
 }
+enum CameraInput {
+    case front, back
+}
 
 protocol CameraVideoFocusSetup {}
 protocol CameraVideoSetup {}
@@ -20,9 +23,10 @@ protocol CameraVideoSetup {}
 class PetPolarCameraVideoViewController: UIViewController {
     
     var cameraMode: CameraMode = .video
+    var cameraInput: CameraInput = .back
     var isRecording = false
     var cameraSetup = false
-    var flashMode = true
+    var flashMode = false
     
     var cameraCurrent: AVCaptureDevice?
     var cameraFront: AVCaptureDevice?
@@ -68,14 +72,15 @@ class PetPolarCameraVideoViewController: UIViewController {
     }
     
     @IBAction func swapCameraDidTap(_ sender: Any) {
-        let previousInput: AVCaptureInput = self.inputCurrent!
-        let previousDevice: AVCaptureDevice = self.cameraCurrent!
-        
-        if (self.cameraCurrent == self.cameraBack) {
-            
+        print("swapCameraDidTap from \(self.cameraInput)")
+        if self.cameraInput == .back {
+            self.cameraInput = .front
         } else {
-            
+            self.cameraInput = .back
         }
+        print("swapCameraDidTap to \(self.cameraInput)")
+        self.cameraSetup = false
+        self.startCamera()
     }
     
     // MARK: - camera
@@ -83,12 +88,12 @@ class PetPolarCameraVideoViewController: UIViewController {
     func startCamera() {
         if !self.cameraSetup {
             self.setupCameraDevices()
-            if (self.setupInput()) {
+            if self.setupInput() && self.selectInput(cameraInput: self.cameraInput) {
                 self.setupOutput()
                 self.setupCaptureSession()
                 self.setupPreviewLayer()
                 self.updateCameraConnection()
-                self.toggleFlash()
+                self.setFlash(staus: false)
                 
                 self.captureSession?.startRunning()
                 self.cameraSetup = true
@@ -99,11 +104,9 @@ class PetPolarCameraVideoViewController: UIViewController {
     func toggleRecordVideo(){
         if !self.isRecording {
             self.satrtRecordVideo()
-            //            self.toggleFlash()
             self.isRecording = true
         } else {
             self.stopRecordVideo()
-            //            self.toggleFlash()
             self.isRecording = false
         }
     }
@@ -194,14 +197,6 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
         } catch {
             print("Error: cameraFront?.lockForConfiguration()")
         }
-        
-        if (self.cameraBack != nil) {
-            self.cameraCurrent = self.cameraBack
-        } else if (self.cameraFront != nil) {
-            self.cameraCurrent = self.cameraFront
-        }
-        
-        self.cameraCurrent = self.cameraFront
     }
     
     func setupInput() -> Bool {
@@ -215,19 +210,26 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
             if(self.audio != nil){
                 self.inputAudio = try AVCaptureDeviceInput(device: self.audio)
             }
-            
-            if (self.inputBack != nil) {
-                self.inputCurrent = self.inputBack
-            } else if (self.inputFront != nil) {
-                self.inputCurrent = self.inputFront
-            }
         } catch {
             return false
         }
-        
-        self.inputCurrent = self.inputFront
-        
         return true
+    }
+    
+    func selectInput(cameraInput: CameraInput) -> Bool {
+        if (cameraInput == .front && self.cameraFront != nil && self.inputFront != nil) {
+            self.cameraCurrent = self.cameraFront
+            self.inputCurrent = self.inputFront
+            self.cameraInput = .front
+            return true
+        } else if (self.cameraBack != nil && self.inputBack != nil) {
+            self.cameraCurrent = self.cameraBack
+            self.inputCurrent = self.inputBack
+            self.cameraInput = .back
+            return true
+        } else {
+            return false
+        }
     }
     
     func setupOutput() {
@@ -297,56 +299,56 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
     }
     
     func toggleFlash() {
-        switch cameraMode {
-        case .photo:
-            self.changeCameraFlashMode()
-            
-        case .video:
-            self.changeVideoFlashMode()
-            
+        if (self.cameraInput == .back) {
+            self.flashMode = !self.flashMode
+            self.setFlash(staus: self.flashMode)
+        } else if (self.cameraInput == .front) {
+            self.flashMode = false
         }
     }
     
-    func changeCameraFlashMode() -> Bool {
+    func setFlash(staus: Bool) {
+        self.flashMode = staus
+        switch cameraMode {
+        case .photo:
+            self.setCameraFlashMode(status: self.flashMode)
+        case .video:
+            self.setVideoFlashMode(status: self.flashMode)
+        }
+    }
+    
+    func setCameraFlashMode(status: Bool) {
         do {
             self.captureSession?.beginConfiguration()
             try self.cameraCurrent?.lockForConfiguration()
-        
-            if (flashMode == true) {
+            
+            if (status == false) {
                 if (self.cameraCurrent?.isFlashModeSupported(AVCaptureFlashMode.off) == true) {
                     self.cameraCurrent?.flashMode = AVCaptureFlashMode.off
-                    self.flashMode = false
                 }
-            } else {
+            } else if (status == true) {
                 if (self.cameraCurrent?.isFlashModeSupported(AVCaptureFlashMode.on) == true) {
                     self.cameraCurrent?.flashMode = AVCaptureFlashMode.on
-                    self.flashMode = true
                 }
             }
-            
             self.cameraCurrent?.unlockForConfiguration()
             self.captureSession?.commitConfiguration()
-            
         } catch let error as NSError {
             print("changeFlashMode(): \(error)")
         }
-        
-        return self.flashMode
     }
     
-    func changeVideoFlashMode() -> Bool {
+    func setVideoFlashMode(status: Bool) {
         if let device = AVCaptureDevice.defaultDevice(withMediaType: AVMediaTypeVideo), device.hasTorch {
             if (self.cameraCurrent?.isFlashAvailable)! {
                 do {
                     try device.lockForConfiguration()
                     try device.setTorchModeOnWithLevel(1.0)
                     
-                    if (flashMode == true) {
+                    if (status == false) {
                         device.torchMode = .off
-                        self.flashMode = false
-                    } else {
+                    } else if (status == true) {
                         device.torchMode = .on
-                        self.flashMode = true
                     }
                     
                     device.unlockForConfiguration()
@@ -357,9 +359,7 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
                 print("changeVideoFlashMode flash not support with this camera")
             }
         }
-        return self.flashMode
     }
-    
     
     func satrtRecordVideo() {
         print("recordVideo() start")
@@ -375,7 +375,6 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
     
     func stopRecordVideo() {
         print("stopRecordVideo()")
-        
         self.videoOutput?.stopRecording()
     }
     

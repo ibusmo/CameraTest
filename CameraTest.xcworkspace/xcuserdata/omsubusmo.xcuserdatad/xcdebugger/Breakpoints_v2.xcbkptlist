@@ -138,7 +138,7 @@
                   moduleName = "CameraTest"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/omsubusmo/Documents/CameraTest/CameraTest/PetPolarVideoTrimmerViewController.swift"
-                  timestampString = "507037816.302301"
+                  timestampString = "507105846.723871"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "134"
@@ -153,7 +153,7 @@
                   moduleName = "CameraTest"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/omsubusmo/Documents/CameraTest/CameraTest/PetPolarVideoTrimmerViewController.swift"
-                  timestampString = "507037816.304249"
+                  timestampString = "507105846.72645"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "135"
@@ -176,6 +176,22 @@
             startingLineNumber = "135"
             endingLineNumber = "135"
             landmarkName = "trimVideo()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CameraTest/PetPolarVideoTrimmerViewController.swift"
+            timestampString = "507123437.4059"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "270"
+            endingLineNumber = "270"
+            landmarkName = "soundToggle()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
