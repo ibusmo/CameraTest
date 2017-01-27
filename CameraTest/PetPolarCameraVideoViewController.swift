@@ -21,7 +21,7 @@ protocol CameraVideoSetup {}
 
 
 class PetPolarCameraVideoViewController: UIViewController {
-    
+    // Flag & Mode
     var cameraMode: CameraMode = .video
     var cameraInput: CameraInput = .back
     var isRecording = false
@@ -48,23 +48,23 @@ class PetPolarCameraVideoViewController: UIViewController {
     
     var previewLayer = AVCaptureVideoPreviewLayer()
     
+    // View Conroller
+    var trimmerViewController: PetPolarVideoTrimmerViewController?
+    
     @IBOutlet weak var previewView: UIView!
 
     override func viewWillAppear(_ animated: Bool) {
+        print("PetPolarCameraVideoViewController: viewWillAppear")
     }
     
     override func viewDidLoad() {
+        print("PetPolarCameraVideoViewController: viewDidLoad")
         super.viewDidLoad()
         self.startCamera()
     }
     
     @IBAction func TakePhoto(_ sender: Any) {
-        switch self.cameraMode {
-        case .photo:
-            self.takePhotoToLibary()
-        case .video:
-            self.toggleRecordVideo()
-        }
+        self.shotCamera()
     }
     
     @IBAction func changeFlashModeDidTap(_ sender: Any) {
@@ -72,20 +72,25 @@ class PetPolarCameraVideoViewController: UIViewController {
     }
     
     @IBAction func swapCameraDidTap(_ sender: Any) {
-        print("swapCameraDidTap from \(self.cameraInput)")
-        if self.cameraInput == .back {
-            self.cameraInput = .front
-        } else {
-            self.cameraInput = .back
-        }
-        print("swapCameraDidTap to \(self.cameraInput)")
-        self.cameraSetup = false
-        self.startCamera()
+        self.swapCamrea()
+    }
+    
+    @IBAction func libraryDidTap(_ sender: Any) {
+        self.trimmerViewController = PetPolarVideoTrimmerViewController(nibName: "PetPolarVideoTrimmerViewController", bundle: nil)
+        self.trimmerViewController?.delegate = self
+        self.present(self.trimmerViewController!, animated: true, completion: nil)
     }
     
     // MARK: - camera
     
+    func reStartCamera() {
+        print("reStartCamera()")
+        self.cameraSetup = false
+        self.startCamera()
+    }
+    
     func startCamera() {
+        print("startCamera()")
         if !self.cameraSetup {
             self.setupCameraDevices()
             if self.setupInput() && self.selectInput(cameraInput: self.cameraInput) {
@@ -99,6 +104,25 @@ class PetPolarCameraVideoViewController: UIViewController {
                 self.cameraSetup = true
             }
         }
+    }
+    
+    func shotCamera() {
+        switch self.cameraMode {
+        case .photo:
+            self.takePhotoToLibary()
+        case .video:
+            self.toggleRecordVideo()
+        }    }
+    
+    func swapCamrea() {
+        print("swapCameraDidTap from \(self.cameraInput)")
+        if self.cameraInput == .back {
+            self.cameraInput = .front
+        } else {
+            self.cameraInput = .back
+        }
+        print("swapCameraDidTap to \(self.cameraInput)")
+        self.reStartCamera()
     }
     
     func toggleRecordVideo(){
@@ -455,6 +479,9 @@ extension PetPolarCameraVideoViewController: CameraVideoFocusSetup {
                     var desc: CMVideoFormatDescription?
                     if #available(iOS 9.0, *) {
                         desc = (port as AnyObject).formatDescription
+                        if desc == nil {
+                            return CGPoint(x: 0.0, y: 0.0)
+                        }
                     } else {
                         // Fallback on earlier versions
                         return CGPoint(x: 0.0, y: 0.0)
@@ -503,6 +530,16 @@ extension PetPolarCameraVideoViewController: CameraVideoFocusSetup {
                 }
             }}
         return pointOfInterest
+    }
+    
+}
+
+extension PetPolarCameraVideoViewController: PetPolarCameraVideoViewControllerDelegate {
+    
+    func dismissViewController() {
+        print("PetPolarCameraVideoViewController: dismissViewController() delegate")
+        self.trimmerViewController = nil
+        self.reStartCamera()
     }
     
 }

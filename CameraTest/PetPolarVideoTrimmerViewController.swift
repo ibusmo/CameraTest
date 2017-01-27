@@ -13,8 +13,13 @@ import MobileCoreServices
 import ICGVideoTrimmer
 
 protocol PetPolarVideoTrimmerVideoPlayerDelegate {}
+protocol PetPolarCameraVideoViewControllerDelegate {
+    func dismissViewController()
+}
 
 class PetPolarVideoTrimmerViewController: UIViewController {
+    
+    var delegate: PetPolarCameraVideoViewControllerDelegate?
     
     @IBOutlet weak var backNavigationButton: UIButton!
     @IBOutlet weak var muteButton: UIButton!
@@ -43,6 +48,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     var videoPlaybackPosition: CGFloat = 0.0
     var startTime: CGFloat = 0.0
     var stopTime: CGFloat = 0.0
+    var duration: CGFloat = 0.0
     
     // mark - source asset
     var asset: AVAsset?
@@ -72,18 +78,33 @@ class PetPolarVideoTrimmerViewController: UIViewController {
         self.trimVideo()
     }
     
+    @IBAction func trimDidTap(_ sender: Any) {
+        self.dismissViewController()
+    }
+    
+    func dismissViewController() {
+        self.setVideoState(status: false)
+        self.player = nil
+        self.playerItem = nil
+        self.playerLayer = nil
+        self.dismiss(animated: true, completion: {
+            print("PetPolarVideoTrimmerViewController: delegate")
+            self.delegate?.dismissViewController()
+        })
+    }
+    
     func trimVideo() {
         self.deleteTepmFile()
         let destinationURL: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
         
-        if (self.asset != nil && self.url != nil) {
+        if let url = self.url, let asset = self.asset {
             
             print("trimVideo() start \(self.tempVideoPath)")
             self.nextButton.isHidden = true
             
             let preferredPreset = AVAssetExportPresetPassthrough
             let options = [ AVURLAssetPreferPreciseDurationAndTimingKey: true ]
-            let sourceAsset = AVURLAsset(url: self.url!, options: options)
+            let sourceAsset = AVURLAsset(url: url, options: options)
             let compatiblePresets = AVAssetExportSession.exportPresets(compatibleWith: sourceAsset)
             
             if compatiblePresets.contains(AVAssetExportPresetMediumQuality) {
@@ -137,6 +158,8 @@ class PetPolarVideoTrimmerViewController: UIViewController {
                         })
                     }
                 })
+            } else {
+                print("trimVideo() cannot trim cause url, asset nil")
             }
         }
     }
@@ -194,52 +217,55 @@ extension PetPolarVideoTrimmerViewController: UIImagePickerControllerDelegate {
     
     func setupTrimmerView(url: URL) {
         print("setupTrimmerView() url: \(url)")
-        
-        // setup video previewer
-        self.playerLayer?.removeFromSuperlayer()
-        let item: AVPlayerItem = AVPlayerItem(asset: self.asset!)
-        self.player = AVPlayer(playerItem: item)
-        self.playerLayer = AVPlayerLayer(player: self.player)
-        self.playerLayer?.frame = CGRect(x: 0, y: 0, width: self.videoPreviewView.frame.width, height: self.videoPreviewView.frame.height)
-        self.playerLayer?.videoGravity = AVLayerVideoGravityResizeAspectFill
-        self.player?.actionAtItemEnd = AVPlayerActionAtItemEnd.none
-        DispatchQueue.main.async {
-            self.videoPreviewView.layer.addSublayer(self.playerLayer!)
+        if let url = self.url, let asset = self.asset {
+            // setup video previewer
+            self.playerLayer?.removeFromSuperlayer()
+            let item: AVPlayerItem = AVPlayerItem(asset: asset)
+            self.player = AVPlayer(playerItem: item)
+            self.playerLayer = AVPlayerLayer(player: self.player)
+            self.playerLayer?.frame = CGRect(x: 0, y: 0, width: self.videoPreviewView.frame.width, height: self.videoPreviewView.frame.height)
+            self.playerLayer?.videoGravity = AVLayerVideoGravityResizeAspectFill
+            self.player?.actionAtItemEnd = AVPlayerActionAtItemEnd.none
+            DispatchQueue.main.async {
+                self.videoPreviewView.layer.addSublayer(self.playerLayer!)
+            }
+            // setup video previwer gesture play/pause toggle
+            let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(PetPolarVideoTrimmerViewController.tapOnVideoLayer))
+            self.videoPreviewView.addGestureRecognizer(tap)
+            
+            // set up video player, additional
+            self.duration = CGFloat(CMTimeGetSeconds(self.player!.currentItem!.asset.duration))
+            self.videoPlaybackPosition = 0.0
+            self.startTime = 0.0
+            self.stopTime = self.duration < self.maxLength ? self.duration : self.maxLength
+            self.setSoundState(status: true)
+            self.setVideoState(status: true)
+            
+            // set properties for trimmer view
+            self.trimmerLayer.removeFromSuperview()
+            self.trimmerLayer.frame = CGRect(x: 0, y: 0, width: self.trimmerView.frame.width, height: self.trimmerView.frame.height)
+            self.trimmerLayer.themeColor = UIColor.lightGray
+            self.trimmerLayer.trackerColor = UIColor.white
+            self.trimmerLayer.thumbWidth = 15.0
+            self.trimmerLayer.asset = asset
+            self.trimmerLayer.showsRulerView = true
+            self.trimmerLayer.isHidden = false
+            self.trimmerLayer.minLength = self.duration < self.minLength ? self.duration : self.minLength
+            self.trimmerLayer.maxLength = self.duration < self.maxLength ? self.duration : self.maxLength
+            self.trimmerLayer.delegate = self
+            
+            // important: reset subviews
+            self.trimmerLayer.resetSubviews()
+            
+            self.trimmerView.addSubview(self.trimmerLayer)
+            
+            print("duration:\(duration)")
+            print("startTime:\(self.startTime) stopTime:\(self.stopTime)")
+            print("minLength:\(self.minLength) maxLength:\(self.maxLength)")
+            print("minLength:\(self.trimmerLayer.minLength) maxLength:\(self.trimmerLayer.maxLength)")
+        } else {
+            print("setupTrimmerView() cannot setup trimmer view cause url, asset nil")
         }
-        // setup video previwer gesture play/pause toggle
-        let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(PetPolarVideoTrimmerViewController.tapOnVideoLayer))
-        self.videoPreviewView.addGestureRecognizer(tap)
-        
-        // set up video player, additional
-        let duration: CGFloat = CGFloat(CMTimeGetSeconds(self.player!.currentItem!.asset.duration))
-        self.videoPlaybackPosition = 0.0
-        self.startTime = 0.0
-        self.stopTime = duration < self.maxLength ? duration : self.maxLength
-        self.setSoundState(status: true)
-        self.setVideoState(status: true)
-        
-        // set properties for trimmer view
-        self.trimmerLayer.removeFromSuperview()
-        self.trimmerLayer.frame = CGRect(x: 0, y: 0, width: self.trimmerView.frame.width, height: self.trimmerView.frame.height)
-        self.trimmerLayer.themeColor = UIColor.lightGray
-        self.trimmerLayer.trackerColor = UIColor.white
-        self.trimmerLayer.thumbWidth = 15.0
-        self.trimmerLayer.asset = self.asset
-        self.trimmerLayer.showsRulerView = true
-        self.trimmerLayer.isHidden = false
-        self.trimmerLayer.minLength = self.minLength
-        self.trimmerLayer.maxLength = duration < self.maxLength ? duration : self.maxLength
-        self.trimmerLayer.delegate = self
-        
-        // important: reset subviews
-        self.trimmerLayer.resetSubviews()
-        
-        self.trimmerView.addSubview(self.trimmerLayer)
-        
-        print("duration:\(duration)")
-        print("startTime:\(self.startTime) stopTime:\(self.stopTime)")
-        print("minLength:\(self.minLength) maxLength:\(self.maxLength)")
-        print("minLength:\(self.trimmerLayer.minLength) maxLength:\(self.trimmerLayer.maxLength)")
     }
     
 }
@@ -313,23 +339,27 @@ extension PetPolarVideoTrimmerViewController: PetPolarVideoTrimmerVideoPlayerDel
     // mark - PlaybackTimeCheckerTimer
     
     func onPlaybackTimeCheckerTimer() {
-        let currentPlayingTime = CGFloat(CMTimeGetSeconds(self.player!.currentTime()))
-        self.videoPlaybackPosition = currentPlayingTime
-        
-        if self.videoPlaybackPosition >= self.startTime && self.videoPlaybackPosition < self.stopTime {
-            self.trimmerLayer.seek(toTime: currentPlayingTime)
-        } else if self.videoPlaybackPosition >= self.stopTime {
-            self.seekVideoToPos(pos: self.startTime)
+        if let player = self.player {
+            let currentPlayingTime = CGFloat(CMTimeGetSeconds(player.currentTime()))
+            self.videoPlaybackPosition = currentPlayingTime
+            
+            if self.videoPlaybackPosition >= self.startTime && self.videoPlaybackPosition < self.stopTime {
+                self.trimmerLayer.seek(toTime: currentPlayingTime)
+            } else if self.videoPlaybackPosition >= self.stopTime {
+                self.seekVideoToPos(pos: self.startTime)
+            }
         }
     }
     
     func seekVideoToPos(pos: CGFloat) {
 //        print("seekVideoToPos() pos: \(pos)")
-        self.videoPlaybackPosition = pos
-        let time: CMTime = CMTimeMakeWithSeconds(Float64(pos), self.player!.currentTime().timescale)
-        
-        self.player?.seek(to: time, toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
-        self.trimmerLayer.seek(toTime: self.startTime)
+        if let player = self.player {
+            self.videoPlaybackPosition = pos
+            let time: CMTime = CMTimeMakeWithSeconds(Float64(pos), player.currentTime().timescale)
+            
+            self.player?.seek(to: time, toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
+            self.trimmerLayer.seek(toTime: self.startTime)
+        }
     }
     
 }

@@ -143,6 +143,9 @@
                             <state key="normal" title="Trim">
                                 <color key="titleShadowColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                             </state>
+                            <connections>
+                                <action selector="trimDidTap:" destination="-1" eventType="touchUpInside" id="cZe-qI-h1c"/>
+                            </connections>
                         </button>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="K3Z-DF-BZ4">
                             <rect key="frame" x="160" y="0.0" width="160" height="44"/>
