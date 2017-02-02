@@ -12,6 +12,10 @@ import AVFoundation
 import MobileCoreServices
 import ICGVideoTrimmer
 
+enum EditMode {
+    case start, trim, cover
+}
+
 protocol PetPolarVideoTrimmerVideoPlayerDelegate {}
 protocol PetPolarCameraVideoViewControllerDelegate {
     func dismissViewController()
@@ -21,18 +25,31 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     
     var delegate: PetPolarCameraVideoViewControllerDelegate?
     
+    // navigation view controller
     @IBOutlet weak var backNavigationButton: UIButton!
     @IBOutlet weak var muteButton: UIButton!
     @IBOutlet weak var nextButton: UIButton!
-    
+    // video view controller
     @IBOutlet weak var videoPreviewView: UIView!
+    @IBOutlet weak var trimmerActionView: UIView!
     @IBOutlet weak var trimmerView: UIView!
-    
+    // cover view controller
+    @IBOutlet weak var coverPreviewView: UIImageView!
+    @IBOutlet weak var coverActionView: UIView!
+    @IBOutlet weak var coverCollectionView: UICollectionView!
+    @IBOutlet weak var coverBarView: UIView!
+    @IBOutlet weak var coverPointButton: UIButton!
+    // button view controller
     @IBOutlet weak var trimModeButton: UIButton!
     @IBOutlet weak var coverModeButton: UIButton!
+    @IBOutlet weak var trimmerModeUnderView: UIView!
+    @IBOutlet weak var coverModeUnderView: UIView!
     
     // Trimmer Layer
     var trimmerLayer = ICGVideoTrimmerView()
+    
+    // Edit mode
+    var editMode: EditMode = .start
     
     // Trimer setting
     let minLength: CGFloat = 3.0
@@ -49,6 +66,13 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     var startTime: CGFloat = 0.0
     var stopTime: CGFloat = 0.0
     var duration: CGFloat = 0.0
+    // Video Player Cover
+    var coverAtPercent: CGFloat = 0.0
+    var coverAtTime: CGFloat = 0.0
+    
+    // cover image
+    var numberOfSampleCover: Int = 0
+    var sampleCovers = [UIImage]()
     
     // mark - source asset
     var asset: AVAsset?
@@ -59,9 +83,23 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.coverCollectionView.dataSource = self
+        self.coverCollectionView.delegate = self
+        self.coverCollectionView.register(UINib(nibName: "CoverCollectionViewCell", bundle: nil), forCellWithReuseIdentifier: "CoverCollectionViewCell")
+        
+        self.numberOfSampleCover = Int(ceilf(Float(self.coverCollectionView.frame.width)/50.0))
         
         // let sound able to play in iPhone silent mode
         try! AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback, with: [])
+        
+        self.trimModeButton.addTarget(self, action: #selector(PetPolarVideoTrimmerViewController.trimmerModeDidTap), for: UIControlEvents.touchUpInside)
+        self.coverModeButton.addTarget(self, action: #selector(PetPolarVideoTrimmerViewController.coverModeDidTap), for: UIControlEvents.touchUpInside)
+        
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(PetPolarVideoTrimmerViewController.handleLongPress(longPress:)))
+        longPress.minimumPressDuration = 0.01
+        self.coverPointButton.addGestureRecognizer(longPress)
+        
+        self.trimmerModeDidTap()
     }
     
     // mark - user event
@@ -78,10 +116,6 @@ class PetPolarVideoTrimmerViewController: UIViewController {
         self.trimVideo()
     }
     
-    @IBAction func trimDidTap(_ sender: Any) {
-        self.dismissViewController()
-    }
-    
     func dismissViewController() {
         self.setVideoState(status: false)
         self.player = nil
@@ -93,105 +127,32 @@ class PetPolarVideoTrimmerViewController: UIViewController {
         })
     }
     
-    func trimVideo() {
-        self.deleteTepmFile()
-        let destinationURL: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
-        
-        if let url = self.url, let asset = self.asset {
+    func coverModeDidTap() {
+        if self.editMode != .cover {
+            self.editMode = .cover
+            self.coverActionView.isHidden = false
+            self.trimmerActionView.isHidden = true
             
-            print("trimVideo() start \(self.tempVideoPath)")
-            self.nextButton.isHidden = true
+            self.getCoverImages()
             
-            let preferredPreset = AVAssetExportPresetPassthrough
-            let options = [ AVURLAssetPreferPreciseDurationAndTimingKey: true ]
-            let sourceAsset = AVURLAsset(url: url, options: options)
-            let compatiblePresets = AVAssetExportSession.exportPresets(compatibleWith: sourceAsset)
+            self.coverModeUnderView.isHidden = false
+            self.trimmerModeUnderView.isHidden = true
             
-            if compatiblePresets.contains(AVAssetExportPresetMediumQuality) {
-                
-                let composition = AVMutableComposition()
-                // destination track source
-                let videoCompTrack = composition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: CMPersistentTrackID())
-                let audioCompTrack = composition.addMutableTrack(withMediaType: AVMediaTypeAudio, preferredTrackID: CMPersistentTrackID())
-                
-                // pointer to first track of source
-                let assetVideoTrack: AVAssetTrack = sourceAsset.tracks(withMediaType: AVMediaTypeVideo).first! as AVAssetTrack
-                let assetAudioTrack: AVAssetTrack = sourceAsset.tracks(withMediaType: AVMediaTypeAudio).first! as AVAssetTrack
-                
-                let start: CMTime       = CMTimeMakeWithSeconds(Float64(self.startTime), sourceAsset.duration.timescale)
-                let duration: CMTime    = CMTimeMakeWithSeconds(Float64(self.stopTime-self.startTime), sourceAsset.duration.timescale)
-                let timeRangeForCurrentSlice = CMTimeRangeMake(start, duration)
-                
-                // insert video, audio track into composition
-                do {
-                    try videoCompTrack.insertTimeRange(timeRangeForCurrentSlice, of: assetVideoTrack, at: kCMTimeZero)
-                    if self.isSoundAble {
-                        try audioCompTrack.insertTimeRange(timeRangeForCurrentSlice, of: assetAudioTrack, at: kCMTimeZero)
-                    }
-                } catch {
-                    print("trimVideo() insertTimeRange error")
-                }
-                
-                // Export by passthrough preset and compsiton with video, audio
-                self.exportSession = AVAssetExportSession(asset: composition, presetName: preferredPreset)
-                self.exportSession?.outputURL = destinationURL as URL
-                self.exportSession?.outputFileType = AVFileTypeQuickTimeMovie
-                self.exportSession?.shouldOptimizeForNetworkUse = true
-//                self.exportSession?.timeRange = timeRangeForCurrentSlice
-                self.exportSession?.exportAsynchronously(completionHandler: { () -> Void in
-                    
-                    print("trimVideo() finish")
-                    self.nextButton.isHidden = false
-                    
-                    switch self.exportSession!.status {
-                    case .failed:
-                        print("Export failed")
-                        print(self.exportSession?.error?.localizedDescription as Any)
-                    case .cancelled:
-                        print("Export canceled")
-                    default:
-                        print("Export success")
-                        // copy asset to Photo Libraries
-                        DispatchQueue.main.async(execute: {
-                            let movieUrl: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
-                            UISaveVideoAtPathToSavedPhotosAlbum(movieUrl.relativePath!, self, #selector(PetPolarVideoTrimmerViewController.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
-                        })
-                    }
-                })
-            } else {
-                print("trimVideo() cannot trim cause url, asset nil")
-            }
+            self.setVideoState(status: false)
         }
     }
     
-    func deleteTepmFile() {
-        let url: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
-        let fm = FileManager.default
-        let exist = fm.fileExists(atPath: url.path!)
-        if exist {
-            do {
-                try fm.removeItem(at: url as URL)
-            } catch {
-                print("file romeve error")
-            }
-        } else {
-            print("no file by that name")
+    func trimmerModeDidTap() {
+        if self.editMode != .trim {
+            self.editMode = .trim
+            self.coverActionView.isHidden = true
+            self.trimmerActionView.isHidden = false
+            
+            self.coverModeUnderView.isHidden = true
+            self.trimmerModeUnderView.isHidden = false
+            
+            self.setVideoState(status: true)
         }
-    }
-    
-    func video(videoPath: NSString, didFinishSavingWithError error: NSError?, contextInfo info: AnyObject) {
-        var title = ""
-        var message = ""
-        if (error != nil) {
-            title = "Failed !"
-            message = "Video Saving Failed"
-        } else {
-            title = "Success !"
-            message = "Saved To Photo Album"
-        }
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.cancel, handler: nil))
-        self.present(alert, animated: true, completion: nil)
     }
     
 }
@@ -287,6 +248,122 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
         self.startTime = startTime
         self.stopTime = endTime
     }
+    
+    func trimVideo() {
+        self.deleteTepmFile()
+        let destinationURL: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
+        
+        if let url = self.url, let asset = self.asset {
+            
+            print("trimVideo() start \(self.tempVideoPath)")
+            self.nextButton.isHidden = true
+            
+            let preferredPreset = AVAssetExportPresetPassthrough
+            let options = [ AVURLAssetPreferPreciseDurationAndTimingKey: true ]
+            let sourceAsset = AVURLAsset(url: url, options: options)
+            let compatiblePresets = AVAssetExportSession.exportPresets(compatibleWith: sourceAsset)
+            
+            if compatiblePresets.contains(AVAssetExportPresetMediumQuality) {
+                
+                // setup time range
+                let start: CMTime       = CMTimeMakeWithSeconds(Float64(self.startTime), sourceAsset.duration.timescale)
+                let duration: CMTime    = CMTimeMakeWithSeconds(Float64(self.stopTime-self.startTime), sourceAsset.duration.timescale)
+                let timeRangeForCurrentSlice = CMTimeRangeMake(start, duration)
+                
+                let composition = AVMutableComposition()
+                // destination track source
+                let videoCompTrack = composition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: CMPersistentTrackID())
+                let audioCompTrack = composition.addMutableTrack(withMediaType: AVMediaTypeAudio, preferredTrackID: CMPersistentTrackID())
+                
+                // pointer to first track of source
+                // let assetVideoTrack: AVAssetTrack = sourceAsset.tracks(withMediaType: AVMediaTypeVideo).first! as AVAssetTrack
+                // let assetAudioTrack: AVAssetTrack = sourceAsset.tracks(withMediaType: AVMediaTypeAudio).first! as AVAssetTrack
+                
+                if let assetVideoTrack = sourceAsset.tracks(withMediaType: AVMediaTypeVideo).first {
+                    // insert video, audio track into composition
+                    do {
+                        try videoCompTrack.insertTimeRange(timeRangeForCurrentSlice, of: assetVideoTrack, at: kCMTimeZero)
+                    } catch {
+                        print("trimVideo() insertTimeRange video error")
+                    }
+                } else {
+                    print("trimeVdieo() not found video track")
+                }
+                if self.isSoundAble {
+                    if let assetAudioTrack = sourceAsset.tracks(withMediaType: AVMediaTypeAudio).first {
+                        // insert video, audio track into composition
+                        do {
+                            try audioCompTrack.insertTimeRange(timeRangeForCurrentSlice, of: assetAudioTrack, at: kCMTimeZero)
+                        } catch {
+                            print("trimVideo() insertTimeRange audio error")
+                        }
+                    } else {
+                        print("trimeVdieo() not found audio track")
+                    }
+                }
+                
+                // Export by passthrough preset and compsiton with video, audio
+                self.exportSession = AVAssetExportSession(asset: composition, presetName: preferredPreset)
+                self.exportSession?.outputURL = destinationURL as URL
+                self.exportSession?.outputFileType = AVFileTypeQuickTimeMovie
+                self.exportSession?.shouldOptimizeForNetworkUse = true
+                //                self.exportSession?.timeRange = timeRangeForCurrentSlice
+                self.exportSession?.exportAsynchronously(completionHandler: { () -> Void in
+                    
+                    print("trimVideo() finish")
+                    self.nextButton.isHidden = false
+                    
+                    switch self.exportSession!.status {
+                    case .failed:
+                        print("Export failed")
+                        print(self.exportSession?.error?.localizedDescription as Any)
+                    case .cancelled:
+                        print("Export canceled")
+                    default:
+                        print("Export success")
+                        // copy asset to Photo Libraries
+                        DispatchQueue.main.async(execute: {
+                            let movieUrl: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
+                            UISaveVideoAtPathToSavedPhotosAlbum(movieUrl.relativePath!, self, #selector(PetPolarVideoTrimmerViewController.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
+                        })
+                    }
+                })
+            } else {
+                print("trimVideo() cannot trim cause url, asset nil")
+            }
+        }
+    }
+    
+    func deleteTepmFile() {
+        let url: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
+        let fm = FileManager.default
+        let exist = fm.fileExists(atPath: url.path!)
+        if exist {
+            do {
+                try fm.removeItem(at: url as URL)
+            } catch {
+                print("file romeve error")
+            }
+        } else {
+            print("no file by that name")
+        }
+    }
+    
+    func video(videoPath: NSString, didFinishSavingWithError error: NSError?, contextInfo info: AnyObject) {
+        var title = ""
+        var message = ""
+        if (error != nil) {
+            title = "Failed !"
+            message = "Video Saving Failed"
+        } else {
+            title = "Success !"
+            message = "Saved To Photo Album"
+        }
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.cancel, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
+    
 }
 
 extension PetPolarVideoTrimmerViewController: PetPolarVideoTrimmerVideoPlayerDelegate {
@@ -360,6 +437,86 @@ extension PetPolarVideoTrimmerViewController: PetPolarVideoTrimmerVideoPlayerDel
             self.player?.seek(to: time, toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
             self.trimmerLayer.seek(toTime: self.startTime)
         }
+    }
+    
+}
+
+extension PetPolarVideoTrimmerViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+  
+    func handleLongPress(longPress: UILongPressGestureRecognizer) {
+        let offsetLeft: CGFloat = self.coverPointButton.frame.width/2
+        let offsetRight: CGFloat = self.coverBarView.frame.width - self.coverPointButton.frame.width/2
+        let point = longPress.location(in: self.coverBarView)
+        switch longPress.state {
+            case .began:
+                break
+            case .ended:
+                break
+            case .changed:
+                if (point.x < offsetLeft) {
+                    self.coverPointButton.center.x = offsetLeft
+                } else if (point.x > offsetRight) {
+                    self.coverPointButton.center.x = offsetRight
+                } else {
+                    self.coverPointButton.center.x = point.x
+                }
+                break
+            default:
+                break
+        }
+        self.coverAtPercent = (self.coverPointButton.center.x - offsetLeft) / (offsetRight - offsetLeft) * 100
+        let currentTime = self.coverAtPercent/100.00 * (self.stopTime-self.startTime)
+        self.coverAtTime = self.startTime + currentTime
+        print("point: \(point), at: \(self.coverAtPercent) %, currentTime: \(currentTime), videoTime: \(self.coverAtTime)")
+        self.seekVideoToPos(pos: self.coverAtTime)
+    }
+    
+    func getCoverImages() {
+        print("timescale: \(self.asset!.duration.timescale)")
+        print("duration: \(self.asset!.duration)")
+        print("duration: \(CMTimeGetSeconds(self.asset!.duration))")
+        
+        self.sampleCovers.removeAll(keepingCapacity: false)
+        
+        let rangeDivider = (self.stopTime - self.startTime) / CGFloat(self.numberOfSampleCover-1)
+        for i in 0..<self.numberOfSampleCover {
+            let snapTime = self.startTime + CGFloat(i) * rangeDivider
+            print("\(i): \(snapTime)")
+            do {
+                let imgGenerator = AVAssetImageGenerator(asset: self.asset!)
+                imgGenerator.appliesPreferredTrackTransform = true
+                let cgImage = try imgGenerator.copyCGImage(at: CMTimeMakeWithSeconds(Float64(snapTime), self.asset!.duration.timescale), actualTime: nil)
+                let thumbnail = UIImage(cgImage: cgImage)
+                
+                // thumbnail here
+                self.coverPreviewView.contentMode = .scaleAspectFit
+                self.coverPreviewView.image = thumbnail
+                
+                self.sampleCovers.append(thumbnail)
+            } catch let error {
+                print("*** Error generating thumbnail: \(error.localizedDescription)")
+            }
+        }
+        self.coverCollectionView.reloadData()
+    }
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return 1
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return self.sampleCovers.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CoverCollectionViewCell", for: indexPath) as! CoverCollectionViewCell
+        cell.sequenceLabel.text = "\(indexPath.item)"
+        cell.imageView.image = self.sampleCovers[indexPath.item]
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: 50.0, height: 80.0)
     }
     
 }

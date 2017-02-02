@@ -20,6 +20,8 @@
 		1FA06A4B1E24AB46007C0638 /* CameraTestUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FA06A4A1E24AB46007C0638 /* CameraTestUITests.swift */; };
 		1FA06A5A1E24AB53007C0638 /* PetPolarCameraVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FA06A581E24AB53007C0638 /* PetPolarCameraVideoViewController.swift */; };
 		1FA06A5B1E24AB53007C0638 /* PetPolarCameraVideoViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1FA06A591E24AB53007C0638 /* PetPolarCameraVideoViewController.xib */; };
+		1FA539A31E3F13F300B2A8A5 /* CoverCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FA539A11E3F13F300B2A8A5 /* CoverCollectionViewCell.swift */; };
+		1FA539A41E3F13F300B2A8A5 /* CoverCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1FA539A21E3F13F300B2A8A5 /* CoverCollectionViewCell.xib */; };
 		4155FA5CE72ACD1C2BC2244E /* Pods_CameraTestTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B817066EDE7D8B622C6981B2 /* Pods_CameraTestTests.framework */; };
 		BFA0FECA897A7BF859A20EB4 /* Pods_CameraTestUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4031256892C7E2BFA09C0B /* Pods_CameraTestUITests.framework */; };
 /* End PBXBuildFile section */
@@ -61,6 +63,8 @@
 		1FA06A4C1E24AB46007C0638 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1FA06A581E24AB53007C0638 /* PetPolarCameraVideoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PetPolarCameraVideoViewController.swift; sourceTree = "<group>"; };
 		1FA06A591E24AB53007C0638 /* PetPolarCameraVideoViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PetPolarCameraVideoViewController.xib; sourceTree = "<group>"; };
+		1FA539A11E3F13F300B2A8A5 /* CoverCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoverCollectionViewCell.swift; sourceTree = "<group>"; };
+		1FA539A21E3F13F300B2A8A5 /* CoverCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = CoverCollectionViewCell.xib; sourceTree = "<group>"; };
 		294AB10B0F2DF02F58D63F89 /* Pods-CameraTest.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CameraTest.debug.xcconfig"; path = "Pods/Target Support Files/Pods-CameraTest/Pods-CameraTest.debug.xcconfig"; sourceTree = "<group>"; };
 		2CD8D929534EAD326A555150 /* Pods-CameraTestUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CameraTestUITests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-CameraTestUITests/Pods-CameraTestUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		3B4031256892C7E2BFA09C0B /* Pods_CameraTestUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CameraTestUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -130,6 +134,7 @@
 				1FA06A591E24AB53007C0638 /* PetPolarCameraVideoViewController.xib */,
 				1F9AAB7F1E30D2E20082018D /* PetPolarVideoTrimmerViewController.swift */,
 				1F9AAB801E30D2E20082018D /* PetPolarVideoTrimmerViewController.xib */,
+				1FA539A01E3F136D00B2A8A5 /* CoverCollectionViewCell */,
 				1FA06A2A1E24AB46007C0638 /* AppDelegate.swift */,
 				1FA06A2C1E24AB46007C0638 /* ViewController.swift */,
 				1FA06A2E1E24AB46007C0638 /* Main.storyboard */,
@@ -156,6 +161,15 @@
 				1FA06A4C1E24AB46007C0638 /* Info.plist */,
 			);
 			path = CameraTestUITests;
+			sourceTree = "<group>";
+		};
+		1FA539A01E3F136D00B2A8A5 /* CoverCollectionViewCell */ = {
+			isa = PBXGroup;
+			children = (
+				1FA539A11E3F13F300B2A8A5 /* CoverCollectionViewCell.swift */,
+				1FA539A21E3F13F300B2A8A5 /* CoverCollectionViewCell.xib */,
+			);
+			name = CoverCollectionViewCell;
 			sourceTree = "<group>";
 		};
 		411FC555D35CA2361023B123 /* Pods */ = {
@@ -305,6 +319,7 @@
 				1FA06A5B1E24AB53007C0638 /* PetPolarCameraVideoViewController.xib in Resources */,
 				1FA06A351E24AB46007C0638 /* LaunchScreen.storyboard in Resources */,
 				1FA06A321E24AB46007C0638 /* Assets.xcassets in Resources */,
+				1FA539A41E3F13F300B2A8A5 /* CoverCollectionViewCell.xib in Resources */,
 				1FA06A301E24AB46007C0638 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -455,6 +470,7 @@
 			files = (
 				1F9AAB811E30D2E20082018D /* PetPolarVideoTrimmerViewController.swift in Sources */,
 				1FA06A2D1E24AB46007C0638 /* ViewController.swift in Sources */,
+				1FA539A31E3F13F300B2A8A5 /* CoverCollectionViewCell.swift in Sources */,
 				1FA06A5A1E24AB53007C0638 /* PetPolarCameraVideoViewController.swift in Sources */,
 				1FA06A2B1E24AB46007C0638 /* AppDelegate.swift in Sources */,
 			);
