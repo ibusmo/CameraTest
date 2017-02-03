@@ -36,7 +36,7 @@
                             </state>
                         </button>
                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Video" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6YG-0N-fvQ">
-                            <rect key="frame" x="105.5" y="14" width="109" height="21"/>
+                            <rect key="frame" x="106" y="14" width="109" height="21"/>
                             <constraints>
                                 <constraint firstAttribute="width" constant="109" id="KMs-Oe-OTt"/>
                                 <constraint firstAttribute="height" constant="21" id="ZI7-CD-42q"/>
@@ -167,7 +167,7 @@
                             <color key="trackTintColor" red="0.86359697580000006" green="0.85912507770000002" blue="0.84942078590000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         </progressView>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="S7Q-K2-p0d">
-                            <rect key="frame" x="110.5" y="27" width="100" height="100"/>
+                            <rect key="frame" x="111" y="27" width="100" height="100"/>
                             <constraints>
                                 <constraint firstAttribute="width" priority="998" constant="100" id="C8R-Cd-ZzH"/>
                                 <constraint firstAttribute="height" priority="998" constant="100" id="Y7A-zG-XUX"/>
@@ -213,7 +213,7 @@
                             </connections>
                         </button>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VCy-Na-sFV">
-                            <rect key="frame" x="107.5" y="0.0" width="106" height="44"/>
+                            <rect key="frame" x="108" y="0.0" width="106" height="44"/>
                             <constraints>
                                 <constraint firstAttribute="width" priority="998" constant="106" id="A3K-3p-qPG"/>
                                 <constraint firstAttribute="height" constant="44" id="ArO-EA-rhB"/>

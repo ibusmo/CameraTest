@@ -60,6 +60,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     var player: AVPlayer?
     var playerItem: AVPlayerItem?
     var playerLayer: AVPlayerLayer?
+    var playerLayerCover: AVPlayerLayer?
     var playbackTimeCheckerTimer: Timer?
     var videoPlaybackPosition: CGFloat = 0.0
     var startTime: CGFloat = 0.0
@@ -72,6 +73,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     // cover image
     var numberOfSampleCover: Int = 0
     var sampleCovers = [UIImage]()
+    var coverImage: UIImage?
     
     // mark - source asset
     var asset: AVAsset?
@@ -86,7 +88,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
         self.coverCollectionView.delegate = self
         self.coverCollectionView.register(UINib(nibName: "CoverCollectionViewCell", bundle: nil), forCellWithReuseIdentifier: "CoverCollectionViewCell")
         
-        self.numberOfSampleCover = Int(ceilf(Float(self.coverCollectionView.frame.width)/50.0))
+        self.numberOfSampleCover = Int(ceilf(Float(self.coverCollectionView.frame.width)/60.0))
         
         // let sound able to play in iPhone silent mode
         try! AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback, with: [])
@@ -99,6 +101,12 @@ class PetPolarVideoTrimmerViewController: UIViewController {
         self.coverPointButton.addGestureRecognizer(longPress)
         
         self.trimmerModeDidTap()
+        
+        self.coverPointButton.layer.borderWidth = 1.0
+        self.coverPointButton.layer.borderColor = UIColor.white.cgColor
+        self.coverCollectionView.alpha = 0.3
+        self.coverCollectionView.layer.borderWidth = 0.5
+        self.coverCollectionView.layer.borderColor = UIColor.white.cgColor
     }
     
     // mark - user event
@@ -113,6 +121,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     
     @IBAction func nextDidTap(_ sender: Any) {
         self.trimVideo()
+        self.getCoverImage()
     }
     
     func dismissViewController() {
@@ -120,6 +129,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
         self.player = nil
         self.playerItem = nil
         self.playerLayer = nil
+        self.playerLayerCover = nil
         self.dismiss(animated: true, completion: {
             print("PetPolarVideoTrimmerViewController: delegate")
             self.delegate?.dismissViewController()
@@ -132,7 +142,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
             self.coverActionView.isHidden = false
             self.trimmerActionView.isHidden = true
             
-            self.getCoverImages()
+            self.getSampleCoverImages()
             
             self.coverModeUnderView.isHidden = false
             self.trimmerModeUnderView.isHidden = true
@@ -192,14 +202,19 @@ extension PetPolarVideoTrimmerViewController: UIImagePickerControllerDelegate {
         if let url = self.url, let asset = self.asset {
             // setup video previewer
             self.playerLayer?.removeFromSuperlayer()
+            self.playerLayerCover?.removeFromSuperlayer()
             let item: AVPlayerItem = AVPlayerItem(asset: asset)
             self.player = AVPlayer(playerItem: item)
             self.playerLayer = AVPlayerLayer(player: self.player)
             self.playerLayer?.frame = CGRect(x: 0, y: 0, width: self.videoPreviewView.frame.width, height: self.videoPreviewView.frame.height)
             self.playerLayer?.videoGravity = AVLayerVideoGravityResizeAspectFill
+            self.playerLayerCover = AVPlayerLayer(player: self.player)
+            self.playerLayerCover?.frame = CGRect(x: 0, y: 0, width: self.coverPointButton.frame.width, height: self.coverPointButton.frame.height)
+            self.playerLayerCover?.videoGravity = AVLayerVideoGravityResizeAspectFill
             self.player?.actionAtItemEnd = AVPlayerActionAtItemEnd.none
             DispatchQueue.main.async {
                 self.videoPreviewView.layer.addSublayer(self.playerLayer!)
+                self.coverPointButton.layer.addSublayer(self.playerLayerCover!)
             }
             // setup video previwer gesture play/pause toggle
             let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(PetPolarVideoTrimmerViewController.tapOnVideoLayer))
@@ -365,7 +380,7 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
         var message = ""
         if (error != nil) {
             title = "Failed !"
-            message = "Video Saving Failed"
+            message = "Saving Failed"
         } else {
             title = "Success !"
             message = "Saved To Photo Album"
@@ -397,8 +412,10 @@ extension PetPolarVideoTrimmerViewController: PetPolarVideoTrimmerVideoPlayerDel
     }
     
     func tapOnVideoLayer() {
-        self.isPlaying = !self.isPlaying
-        self.setVideoState(status: self.isPlaying)
+        if (self.editMode == .trim) {
+            self.isPlaying = !self.isPlaying
+            self.setVideoState(status: self.isPlaying)
+        }
     }
     
     func setVideoState(status: Bool) {
@@ -482,30 +499,49 @@ extension PetPolarVideoTrimmerViewController: UICollectionViewDelegate, UICollec
         self.seekVideoToPos(pos: self.coverAtTime)
     }
     
-    func getCoverImages() {
-        print("timescale: \(self.asset!.duration.timescale)")
-        print("duration: \(self.asset!.duration)")
-        print("duration: \(CMTimeGetSeconds(self.asset!.duration))")
-        
-        self.sampleCovers.removeAll(keepingCapacity: false)
-        
-        let rangeDivider = (self.stopTime - self.startTime) / CGFloat(self.numberOfSampleCover-1)
-        for i in 0..<self.numberOfSampleCover {
-            let snapTime = self.startTime + CGFloat(i) * rangeDivider
-            print("\(i): \(snapTime)")
+    func getCoverImage() {
+        if (self.isAssetExist()) {
             do {
                 let imgGenerator = AVAssetImageGenerator(asset: self.asset!)
                 imgGenerator.appliesPreferredTrackTransform = true
-                let cgImage = try imgGenerator.copyCGImage(at: CMTimeMakeWithSeconds(Float64(snapTime), self.asset!.duration.timescale), actualTime: nil)
+                let cgImage = try imgGenerator.copyCGImage(at: CMTimeMakeWithSeconds(Float64(self.coverAtTime), self.asset!.duration.timescale), actualTime: nil)
                 let thumbnail = UIImage(cgImage: cgImage)
                 
                 // thumbnail here
-                self.sampleCovers.append(thumbnail)
+                self.coverImage = thumbnail
+                UIImageWriteToSavedPhotosAlbum(thumbnail, nil, nil, nil)
             } catch let error {
                 print("*** Error generating thumbnail: \(error.localizedDescription)")
             }
         }
-        self.coverCollectionView.reloadData()
+    }
+
+    func getSampleCoverImages() {
+        print("timescale: \(self.asset!.duration.timescale)")
+        print("duration: \(self.asset!.duration)")
+        print("duration: \(CMTimeGetSeconds(self.asset!.duration))")
+        
+        if (self.isAssetExist()) {
+            self.sampleCovers.removeAll(keepingCapacity: false)
+            
+            let rangeDivider = (self.stopTime - self.startTime) / CGFloat(self.numberOfSampleCover-1)
+            for i in 0..<self.numberOfSampleCover {
+                let snapTime = self.startTime + CGFloat(i) * rangeDivider
+                print("\(i): \(snapTime)")
+                do {
+                    let imgGenerator = AVAssetImageGenerator(asset: self.asset!)
+                    imgGenerator.appliesPreferredTrackTransform = true
+                    let cgImage = try imgGenerator.copyCGImage(at: CMTimeMakeWithSeconds(Float64(snapTime), self.asset!.duration.timescale), actualTime: nil)
+                    let thumbnail = UIImage(cgImage: cgImage)
+                    
+                    // thumbnail here
+                    self.sampleCovers.append(thumbnail)
+                } catch let error {
+                    print("*** Error generating thumbnail: \(error.localizedDescription)")
+                }
+            }
+            self.coverCollectionView.reloadData()
+        }
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -524,7 +560,7 @@ extension PetPolarVideoTrimmerViewController: UICollectionViewDelegate, UICollec
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 50.0, height: 80.0)
+        return CGSize(width: 60.0, height: 60.0)
     }
     
 }
