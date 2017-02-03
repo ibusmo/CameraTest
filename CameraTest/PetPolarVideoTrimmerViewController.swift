@@ -34,7 +34,6 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     @IBOutlet weak var trimmerActionView: UIView!
     @IBOutlet weak var trimmerView: UIView!
     // cover view controller
-    @IBOutlet weak var coverPreviewView: UIImageView!
     @IBOutlet weak var coverActionView: UIView!
     @IBOutlet weak var coverCollectionView: UICollectionView!
     @IBOutlet weak var coverBarView: UIView!
@@ -128,7 +127,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     }
     
     func coverModeDidTap() {
-        if self.editMode != .cover {
+        if self.editMode != .cover && self.isAssetExist() {
             self.editMode = .cover
             self.coverActionView.isHidden = false
             self.trimmerActionView.isHidden = true
@@ -139,6 +138,8 @@ class PetPolarVideoTrimmerViewController: UIViewController {
             self.trimmerModeUnderView.isHidden = true
             
             self.setVideoState(status: false)
+            print("cover at time: \(self.coverAtTime)")
+            self.seekVideoToPos(pos: self.coverAtTime)
         }
     }
     
@@ -152,12 +153,22 @@ class PetPolarVideoTrimmerViewController: UIViewController {
             self.trimmerModeUnderView.isHidden = false
             
             self.setVideoState(status: true)
+            print("trimmer start at time: \(self.startTime)")
+            self.seekVideoToPos(pos: self.startTime)
         }
     }
     
 }
 
 extension PetPolarVideoTrimmerViewController: UIImagePickerControllerDelegate {
+    
+    func isAssetExist() -> Bool {
+        if let _ = self.url, let _ = self.asset {
+            return true
+        } else {
+            return false
+        }
+    }
     
     func selectAsset() {
         let myImagePickerController = UIImagePickerController()
@@ -489,9 +500,6 @@ extension PetPolarVideoTrimmerViewController: UICollectionViewDelegate, UICollec
                 let thumbnail = UIImage(cgImage: cgImage)
                 
                 // thumbnail here
-                self.coverPreviewView.contentMode = .scaleAspectFit
-                self.coverPreviewView.image = thumbnail
-                
                 self.sampleCovers.append(thumbnail)
             } catch let error {
                 print("*** Error generating thumbnail: \(error.localizedDescription)")

@@ -52,6 +52,7 @@ class PetPolarCameraVideoViewController: UIViewController {
     var trimmerViewController: PetPolarVideoTrimmerViewController?
     
     @IBOutlet weak var previewView: UIView!
+    @IBOutlet weak var optionView: UIView!
 
     override func viewWillAppear(_ animated: Bool) {
         print("PetPolarCameraVideoViewController: viewWillAppear")
@@ -193,7 +194,10 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
                     }
                 }
                 if (device.hasMediaType(AVMediaTypeAudio)) {
+                    print("setupCameraDevices() this is AVCaptureDevice")
                     self.audio = device as? AVCaptureDevice
+                } else {
+                    print("setupCameraDevices() this is not AVCaptureDevice")
                 }
             }
         }
@@ -232,7 +236,10 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
                 self.inputBack = try AVCaptureDeviceInput(device: self.cameraBack)
             }
             if(self.audio != nil){
+                print("setupInput() audio input is ready")
                 self.inputAudio = try AVCaptureDeviceInput(device: self.audio)
+            } else {
+                print("setupInput() audio input is not ready")
             }
         } catch {
             return false
@@ -278,7 +285,10 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
             self.captureSession?.addInput(self.inputCurrent)
         }
         if (self.captureSession?.canAddInput(self.inputAudio))! {
+            print("setupCaptureSession() captureSession was added by inputAudio")
             self.captureSession?.addInput(self.inputAudio)
+        } else {
+            print("setupCaptureSession() captureSession could not added by inputAudio")
         }
         
         switch self.cameraMode {
@@ -289,7 +299,7 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
             }
             
         case .video:
-            self.captureSession?.sessionPreset = AVCaptureSessionPresetHigh
+            self.captureSession?.sessionPreset = AVCaptureSessionPresetMedium
             if (self.captureSession?.canAddOutput(self.videoOutput))! {
                 self.captureSession?.addOutput(self.videoOutput)
             }
@@ -298,15 +308,16 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
     }
     
     func setupPreviewLayer() {
-        previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+        self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         
-        previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
-        previewLayer.connection.videoOrientation = AVCaptureVideoOrientation.portrait
+        self.previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
+        self.previewLayer.connection.videoOrientation = AVCaptureVideoOrientation.portrait
         
-        previewView.layer.addSublayer(previewLayer)
+        self.previewView.layer.addSublayer(self.previewLayer)
+        self.previewView.bringSubview(toFront: self.optionView)
         
-        previewLayer.position = CGPoint(x: self.previewView.frame.width / 2, y: self.previewView.frame.height / 2)
-        previewLayer.bounds = self.previewView.bounds
+        self.previewLayer.position = CGPoint(x: self.previewView.frame.width / 2, y: self.previewView.frame.height / 2)
+        self.previewLayer.bounds = self.previewView.bounds
     }
     
     func updateCameraConnection() {
