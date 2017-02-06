@@ -12,8 +12,23 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="PetPolarCameraVideoViewController" customModule="CameraTest" customModuleProvider="target">
             <connections>
+                <outlet property="actionView" destination="AC0-eS-0Eq" id="skV-vF-RLJ"/>
+                <outlet property="bottomView" destination="AjG-3s-ZTa" id="sPL-Mu-1Yd"/>
+                <outlet property="captureButton" destination="S7Q-K2-p0d" id="J59-BJ-GIo"/>
+                <outlet property="closeButton" destination="HFP-Rh-xaX" id="CTF-ni-27v"/>
+                <outlet property="flashButton" destination="7c9-AW-bMd" id="zdn-7N-0SA"/>
+                <outlet property="gridButton" destination="frm-SG-GmH" id="CgV-ao-M1y"/>
+                <outlet property="headerView" destination="6qJ-Sg-77Y" id="DB3-Kn-BBS"/>
+                <outlet property="libraryButton" destination="CXS-Gi-p2N" id="06D-NZ-CP8"/>
+                <outlet property="libraryUnderView" destination="Uen-Lw-Bqt" id="7sG-tV-1I8"/>
                 <outlet property="optionView" destination="74N-2S-w3J" id="JZ9-jb-Ak8"/>
+                <outlet property="photoButton" destination="VCy-Na-sFV" id="WfK-P7-GKI"/>
+                <outlet property="photoUnderView" destination="d5i-4M-XIX" id="oL5-hn-9Dd"/>
                 <outlet property="previewView" destination="npH-dn-e6n" id="Y2U-YW-Aix"/>
+                <outlet property="progressView" destination="b05-Pw-iPo" id="XqI-qS-MdC"/>
+                <outlet property="swapButton" destination="JSi-un-fEu" id="rNM-Ni-cR2"/>
+                <outlet property="videoButton" destination="7gH-t9-ANq" id="jlN-kP-dto"/>
+                <outlet property="videoUnderVIew" destination="ydf-52-gUI" id="YxT-uf-pbN"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
         </placeholder>
@@ -96,9 +111,6 @@
                                             <state key="normal" image="swap_cam">
                                                 <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                             </state>
-                                            <connections>
-                                                <action selector="swapCameraDidTap:" destination="-1" eventType="touchUpInside" id="5uS-6n-ZDK"/>
-                                            </connections>
                                         </button>
                                     </subviews>
                                     <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
@@ -121,9 +133,6 @@
                                             <state key="normal" image="nflash_off">
                                                 <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                             </state>
-                                            <connections>
-                                                <action selector="changeFlashModeDidTap:" destination="-1" eventType="touchUpInside" id="CdI-Ge-iep"/>
-                                            </connections>
                                         </button>
                                     </subviews>
                                     <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
@@ -147,7 +156,7 @@
                             </constraints>
                         </view>
                     </subviews>
-                    <color key="backgroundColor" red="0.98431372549999996" green="0.031372549020000001" blue="0.32156862749999998" alpha="1" colorSpace="calibratedRGB"/>
+                    <color key="backgroundColor" red="0.1058823529" green="0.1058823529" blue="0.1058823529" alpha="1" colorSpace="calibratedRGB"/>
                     <constraints>
                         <constraint firstAttribute="trailing" secondItem="74N-2S-w3J" secondAttribute="trailing" id="LY6-Ya-Ork"/>
                         <constraint firstAttribute="width" secondItem="npH-dn-e6n" secondAttribute="height" multiplier="1:1" id="NFo-vR-UYT"/>
@@ -167,7 +176,7 @@
                             <color key="trackTintColor" red="0.86359697580000006" green="0.85912507770000002" blue="0.84942078590000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         </progressView>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="S7Q-K2-p0d">
-                            <rect key="frame" x="111" y="27" width="100" height="100"/>
+                            <rect key="frame" x="110" y="27" width="100" height="100"/>
                             <constraints>
                                 <constraint firstAttribute="width" priority="998" constant="100" id="C8R-Cd-ZzH"/>
                                 <constraint firstAttribute="height" priority="998" constant="100" id="Y7A-zG-XUX"/>
@@ -176,9 +185,6 @@
                             <state key="normal" image="capture">
                                 <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </state>
-                            <connections>
-                                <action selector="TakePhoto:" destination="-1" eventType="touchUpInside" id="RET-U2-v5g"/>
-                            </connections>
                         </button>
                     </subviews>
                     <color key="backgroundColor" red="0.17575472589999999" green="0.1757494658" blue="0.1757524312" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -208,12 +214,9 @@
                                 <color key="titleColor" red="0.86359697580000006" green="0.85912507770000002" blue="0.84942078590000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <color key="titleShadowColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                             </state>
-                            <connections>
-                                <action selector="libraryDidTap:" destination="-1" eventType="touchUpInside" id="Vbn-j9-W7W"/>
-                            </connections>
                         </button>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VCy-Na-sFV">
-                            <rect key="frame" x="108" y="0.0" width="106" height="44"/>
+                            <rect key="frame" x="107" y="0.0" width="106" height="44"/>
                             <constraints>
                                 <constraint firstAttribute="width" priority="998" constant="106" id="A3K-3p-qPG"/>
                                 <constraint firstAttribute="height" constant="44" id="ArO-EA-rhB"/>
@@ -235,7 +238,21 @@
                                 <color key="titleShadowColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
                             </state>
                         </button>
-                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ydf-52-gUI">
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Uen-Lw-Bqt" userLabel="Library Under">
+                            <rect key="frame" x="0.0" y="41" width="106" height="3"/>
+                            <color key="backgroundColor" red="0.18039215689999999" green="0.73333333329999995" blue="0.58823529409999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="3" id="EhB-9e-50N"/>
+                            </constraints>
+                        </view>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="d5i-4M-XIX" userLabel="Photo Under">
+                            <rect key="frame" x="107" y="41" width="106" height="3"/>
+                            <color key="backgroundColor" red="0.18039215689999999" green="0.73333333329999995" blue="0.58823529409999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="3" id="eT4-G9-EjO"/>
+                            </constraints>
+                        </view>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ydf-52-gUI" userLabel="Video Under">
                             <rect key="frame" x="214" y="41" width="106" height="3"/>
                             <color key="backgroundColor" red="0.18039215689999999" green="0.73333333329999995" blue="0.58823529409999997" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             <constraints>
@@ -245,18 +262,26 @@
                     </subviews>
                     <color key="backgroundColor" red="0.17575472589999999" green="0.1757494658" blue="0.1757524312" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     <constraints>
-                        <constraint firstItem="ydf-52-gUI" firstAttribute="leading" secondItem="7gH-t9-ANq" secondAttribute="trailing" constant="-106" id="5Ob-37-V1i"/>
+                        <constraint firstItem="d5i-4M-XIX" firstAttribute="width" secondItem="VCy-Na-sFV" secondAttribute="width" id="0Ug-Ke-C6b"/>
+                        <constraint firstItem="Uen-Lw-Bqt" firstAttribute="bottom" secondItem="CXS-Gi-p2N" secondAttribute="bottom" id="2ir-1n-D9n"/>
                         <constraint firstAttribute="height" constant="44" id="682-gx-cgZ"/>
+                        <constraint firstItem="VCy-Na-sFV" firstAttribute="leading" secondItem="CXS-Gi-p2N" secondAttribute="trailing" constant="1" id="6x8-Gr-PiX"/>
+                        <constraint firstItem="Uen-Lw-Bqt" firstAttribute="centerX" secondItem="CXS-Gi-p2N" secondAttribute="centerX" id="BSL-P3-2xf"/>
                         <constraint firstAttribute="bottom" secondItem="CXS-Gi-p2N" secondAttribute="bottom" id="D4I-yL-ZAP"/>
                         <constraint firstItem="VCy-Na-sFV" firstAttribute="centerX" secondItem="AjG-3s-ZTa" secondAttribute="centerX" id="GIM-NN-zrE"/>
                         <constraint firstAttribute="trailing" secondItem="7gH-t9-ANq" secondAttribute="trailing" id="GVl-xd-tp7"/>
+                        <constraint firstItem="ydf-52-gUI" firstAttribute="centerX" secondItem="7gH-t9-ANq" secondAttribute="centerX" id="IWv-Zi-4V1"/>
                         <constraint firstItem="ydf-52-gUI" firstAttribute="width" secondItem="7gH-t9-ANq" secondAttribute="width" id="IiO-2x-WaU"/>
+                        <constraint firstItem="d5i-4M-XIX" firstAttribute="bottom" secondItem="VCy-Na-sFV" secondAttribute="bottom" id="KUM-2l-5wa"/>
+                        <constraint firstItem="ydf-52-gUI" firstAttribute="bottom" secondItem="7gH-t9-ANq" secondAttribute="bottom" id="KYe-9U-bPa"/>
                         <constraint firstAttribute="bottom" secondItem="7gH-t9-ANq" secondAttribute="bottom" id="P8G-8q-9TW"/>
                         <constraint firstItem="CXS-Gi-p2N" firstAttribute="width" secondItem="VCy-Na-sFV" secondAttribute="width" id="Vel-6z-uo0"/>
                         <constraint firstAttribute="bottom" secondItem="VCy-Na-sFV" secondAttribute="bottom" id="ZLB-V5-cY3"/>
                         <constraint firstItem="CXS-Gi-p2N" firstAttribute="width" secondItem="7gH-t9-ANq" secondAttribute="width" id="eTO-bz-xGy"/>
-                        <constraint firstItem="ydf-52-gUI" firstAttribute="top" secondItem="7gH-t9-ANq" secondAttribute="bottom" constant="-3" id="ero-E8-YVt"/>
+                        <constraint firstItem="Uen-Lw-Bqt" firstAttribute="width" secondItem="CXS-Gi-p2N" secondAttribute="width" id="iH6-Oo-vHp"/>
                         <constraint firstItem="CXS-Gi-p2N" firstAttribute="leading" secondItem="AjG-3s-ZTa" secondAttribute="leading" id="jxA-Nm-h09"/>
+                        <constraint firstItem="d5i-4M-XIX" firstAttribute="centerX" secondItem="VCy-Na-sFV" secondAttribute="centerX" id="px9-aO-hEV"/>
+                        <constraint firstItem="7gH-t9-ANq" firstAttribute="leading" secondItem="VCy-Na-sFV" secondAttribute="trailing" constant="1" id="quI-bA-UeC"/>
                         <constraint firstItem="VCy-Na-sFV" firstAttribute="width" secondItem="7gH-t9-ANq" secondAttribute="width" id="sWy-t6-NOz"/>
                     </constraints>
                 </view>
@@ -277,7 +302,7 @@
                 <constraint firstAttribute="trailing" secondItem="npH-dn-e6n" secondAttribute="trailing" id="vyj-Vc-ZSy"/>
                 <constraint firstItem="AjG-3s-ZTa" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="xPI-4v-s8S"/>
             </constraints>
-            <point key="canvasLocation" x="24" y="50"/>
+            <point key="canvasLocation" x="21" y="69"/>
         </view>
     </objects>
     <resources>

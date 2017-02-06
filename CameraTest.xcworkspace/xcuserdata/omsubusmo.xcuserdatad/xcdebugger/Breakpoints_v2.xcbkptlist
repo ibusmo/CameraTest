@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CameraTest/PetPolarVideoTrimmerViewController.swift"
-            timestampString = "507824064.437291"
+            timestampString = "508069451.186678"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "399"
-            endingLineNumber = "399"
+            startingLineNumber = "414"
+            endingLineNumber = "414"
             landmarkName = "soundToggle()"
             landmarkType = "7">
          </BreakpointContent>

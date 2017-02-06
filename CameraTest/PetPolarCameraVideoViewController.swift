@@ -9,6 +9,9 @@
 import UIKit
 import AVFoundation
 
+enum BottomButtonMode {
+    case lib, photo, video
+}
 enum CameraMode {
     case photo, video
 }
@@ -18,9 +21,14 @@ enum CameraInput {
 
 protocol CameraVideoFocusSetup {}
 protocol CameraVideoSetup {}
-
+protocol PetPolarCameraVideoViewControllerDelegate {
+    func cameraDismissViewController()
+}
 
 class PetPolarCameraVideoViewController: UIViewController {
+    
+    var delegate: PetPolarCameraVideoViewControllerDelegate?
+    
     // Flag & Mode
     var cameraMode: CameraMode = .video
     var cameraInput: CameraInput = .back
@@ -51,35 +59,46 @@ class PetPolarCameraVideoViewController: UIViewController {
     // View Conroller
     var trimmerViewController: PetPolarVideoTrimmerViewController?
     
+    // Header
+    @IBOutlet weak var headerView: UIView!
+    @IBOutlet weak var closeButton: UIButton!
+    // Preview
     @IBOutlet weak var previewView: UIView!
     @IBOutlet weak var optionView: UIView!
-
+    @IBOutlet weak var gridButton: UIButton!
+    @IBOutlet weak var flashButton: UIButton!
+    @IBOutlet weak var swapButton: UIButton!
+    // Action
+    @IBOutlet weak var actionView: UIView!
+    @IBOutlet weak var progressView: UIProgressView!
+    @IBOutlet weak var captureButton: UIButton!
+    // Bottom
+    @IBOutlet weak var bottomView: UIView!
+    @IBOutlet weak var libraryButton: UIButton!
+    @IBOutlet weak var photoButton: UIButton!
+    @IBOutlet weak var videoButton: UIButton!
+    @IBOutlet weak var libraryUnderView: UIView!
+    @IBOutlet weak var photoUnderView: UIView!
+    @IBOutlet weak var videoUnderVIew: UIView!
+    
     override func viewWillAppear(_ animated: Bool) {
         print("PetPolarCameraVideoViewController: viewWillAppear")
+        UIApplication.shared.setStatusBarHidden(true, with: UIStatusBarAnimation.fade)
     }
     
     override func viewDidLoad() {
         print("PetPolarCameraVideoViewController: viewDidLoad")
         super.viewDidLoad()
         self.startCamera()
-    }
-    
-    @IBAction func TakePhoto(_ sender: Any) {
-        self.shotCamera()
-    }
-    
-    @IBAction func changeFlashModeDidTap(_ sender: Any) {
-        self.toggleFlash()
-    }
-    
-    @IBAction func swapCameraDidTap(_ sender: Any) {
-        self.swapCamrea()
-    }
-    
-    @IBAction func libraryDidTap(_ sender: Any) {
-        self.trimmerViewController = PetPolarVideoTrimmerViewController(nibName: "PetPolarVideoTrimmerViewController", bundle: nil)
-        self.trimmerViewController?.delegate = self
-        self.present(self.trimmerViewController!, animated: true, completion: nil)
+        
+        self.captureButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.captureCamera), for: UIControlEvents.touchUpInside)
+        self.flashButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.toggleFlash), for: UIControlEvents.touchUpInside)
+        self.swapButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.swapCamrea), for: UIControlEvents.touchUpInside)
+        self.libraryButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.library), for: UIControlEvents.touchUpInside)
+        self.photoButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.setCameraToPhotoMode), for: UIControlEvents.touchUpInside)
+        self.videoButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.setCameraToVideoMode), for: UIControlEvents.touchUpInside)
+        
+        self.setCameraToVideoMode()
     }
     
     // MARK: - camera
@@ -99,7 +118,7 @@ class PetPolarCameraVideoViewController: UIViewController {
                 self.setupCaptureSession()
                 self.setupPreviewLayer()
                 self.updateCameraConnection()
-                self.setFlash(staus: false)
+                self.setFlash(status: false)
                 
                 self.captureSession?.startRunning()
                 self.cameraSetup = true
@@ -107,13 +126,66 @@ class PetPolarCameraVideoViewController: UIViewController {
         }
     }
     
-    func shotCamera() {
+    func library() {
+        self.setupBottomView(mode: .lib)
+        
+        self.trimmerViewController = PetPolarVideoTrimmerViewController(nibName: "PetPolarVideoTrimmerViewController", bundle: nil)
+        self.trimmerViewController?.delegate = self
+        self.present(self.trimmerViewController!, animated: true, completion: nil)
+    }
+    
+    func setCameraToPhotoMode() {
+        self.setupBottomView(mode: .photo)
+        
+        self.cameraMode = .photo
+        self.reStartCamera()
+    }
+    
+    func setCameraToVideoMode() {
+        self.setupBottomView(mode: .video)
+        
+        self.cameraMode = .video
+        self.reStartCamera()
+    }
+    
+    func setupBottomView(mode: BottomButtonMode) {
+        self.libraryButton.setTitleColor(UIColor.white, for: UIControlState.normal)
+        self.libraryButton.setTitleColor(UIColor.white, for: UIControlState.highlighted)
+        self.libraryUnderView.isHidden = true
+        self.photoButton.setTitleColor(UIColor.white, for: UIControlState.normal)
+        self.photoButton.setTitleColor(UIColor.white, for: UIControlState.highlighted)
+        self.photoUnderView.isHidden = true
+        self.videoButton.setTitleColor(UIColor.white, for: UIControlState.normal)
+        self.videoButton.setTitleColor(UIColor.white, for: UIControlState.highlighted)
+        self.videoUnderVIew.isHidden = true
+        
+        switch mode {
+        case .lib:
+            self.libraryButton.setTitleColor(UIColor.blue, for: UIControlState.normal)
+            self.libraryButton.setTitleColor(UIColor.blue, for: UIControlState.highlighted)
+            self.libraryUnderView.isHidden = false
+            break
+        case .photo:
+            self.photoButton.setTitleColor(UIColor.blue, for: UIControlState.normal)
+            self.photoButton.setTitleColor(UIColor.blue, for: UIControlState.highlighted)
+            self.photoUnderView.isHidden = false
+            break
+        case .video:
+            self.videoButton.setTitleColor(UIColor.blue, for: UIControlState.normal)
+            self.videoButton.setTitleColor(UIColor.blue, for: UIControlState.highlighted)
+            self.videoUnderVIew.isHidden = false
+            break
+        }
+    }
+    
+    func captureCamera() {
         switch self.cameraMode {
         case .photo:
             self.takePhotoToLibary()
         case .video:
             self.toggleRecordVideo()
-        }    }
+        }
+    }
     
     func swapCamrea() {
         print("swapCameraDidTap from \(self.cameraInput)")
@@ -127,12 +199,25 @@ class PetPolarCameraVideoViewController: UIViewController {
     }
     
     func toggleRecordVideo(){
+        print("toggleRecordVideo() self.cameraInput: \(self.cameraInput)")
         if !self.isRecording {
             self.satrtRecordVideo()
             self.isRecording = true
+            self.swapButton.isHidden = true
+            self.gridButton.isHidden = true
+            if self.cameraInput == .back {
+                self.flashButton.isHidden = true
+            }
+            self.captureButton.backgroundColor = UIColor.red
         } else {
             self.stopRecordVideo()
             self.isRecording = false
+            self.swapButton.isHidden = false
+            self.gridButton.isHidden = false
+            if self.cameraInput == .back {
+                self.flashButton.isHidden = false
+            }
+            self.captureButton.backgroundColor = UIColor.clear
         }
     }
     
@@ -154,6 +239,14 @@ class PetPolarCameraVideoViewController: UIViewController {
         if (self.previewView.frame.contains(point)) {
             self.focusAtPoint(point: point)
         }
+    }
+    
+    func closeViewController() {
+        UIApplication.shared.setStatusBarHidden(false, with: UIStatusBarAnimation.fade)
+        self.dismiss(animated: true, completion: {
+            print("PetPolarCameraVideoViewController: delegate")
+            self.delegate?.cameraDismissViewController()
+        })
     }
 
 }
@@ -293,7 +386,7 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
         
         switch self.cameraMode {
         case .photo:
-            self.captureSession?.sessionPreset = AVCaptureSessionPresetHigh
+            self.captureSession?.sessionPreset = AVCaptureSessionPresetMedium
             if (self.captureSession?.canAddOutput(self.imageOutput))! {
                 self.captureSession?.addOutput(self.imageOutput)
             }
@@ -308,16 +401,17 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
     }
     
     func setupPreviewLayer() {
+        self.previewLayer.removeFromSuperlayer()
         self.previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         
         self.previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
         self.previewLayer.connection.videoOrientation = AVCaptureVideoOrientation.portrait
         
-        self.previewView.layer.addSublayer(self.previewLayer)
-        self.previewView.bringSubview(toFront: self.optionView)
-        
         self.previewLayer.position = CGPoint(x: self.previewView.frame.width / 2, y: self.previewView.frame.height / 2)
         self.previewLayer.bounds = self.previewView.bounds
+        
+        self.previewView.layer.addSublayer(self.previewLayer)
+        self.previewView.bringSubview(toFront: self.optionView)
     }
     
     func updateCameraConnection() {
@@ -337,24 +431,31 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
         self.flashMode = !self.flashMode
         
         if (self.cameraInput == .back) {
-            self.setFlash(staus: self.flashMode)
+            self.setFlash(status: self.flashMode)
         } else if (self.cameraInput == .front) {
             self.flashMode = false
         }
         print("toggleFlash to \(self.flashMode)")
     }
     
-    func setFlash(staus: Bool) {
-        self.flashMode = staus
+    func setFlash(status: Bool) {
+        self.flashMode = status
         if (self.cameraInput == .back) {
+            self.flashButton.isHidden = false
             switch cameraMode {
             case .photo:
                 self.setCameraFlashMode(status: self.flashMode)
             case .video:
                 self.setVideoFlashMode(status: self.flashMode)
             }
+            if (status) {
+                self.flashButton.setImage(UIImage(named: "nflash_on_white"), for: UIControlState.normal)
+            } else {
+                self.flashButton.setImage(UIImage(named: "nflash_off"), for: UIControlState.normal)
+            }
         } else if (self.cameraInput == .front) {
             self.flashMode = false
+            self.flashButton.isHidden = true
         }
         print("setFlash to \(self.flashMode)")
     }
@@ -545,12 +646,12 @@ extension PetPolarCameraVideoViewController: CameraVideoFocusSetup {
     
 }
 
-extension PetPolarCameraVideoViewController: PetPolarCameraVideoViewControllerDelegate {
+extension PetPolarCameraVideoViewController: PetPolarVideoTrimmerViewControllerDelegate {
     
-    func dismissViewController() {
+    func trimmerDismissViewController() {
         print("PetPolarCameraVideoViewController: dismissViewController() delegate")
         self.trimmerViewController = nil
-        self.reStartCamera()
+        self.setCameraToPhotoMode()
     }
     
 }

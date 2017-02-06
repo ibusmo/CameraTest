@@ -17,13 +17,13 @@ enum EditMode {
 }
 
 protocol PetPolarVideoTrimmerVideoPlayerDelegate {}
-protocol PetPolarCameraVideoViewControllerDelegate {
-    func dismissViewController()
+protocol PetPolarVideoTrimmerViewControllerDelegate {
+    func trimmerDismissViewController()
 }
 
 class PetPolarVideoTrimmerViewController: UIViewController {
     
-    var delegate: PetPolarCameraVideoViewControllerDelegate?
+    var delegate: PetPolarVideoTrimmerViewControllerDelegate?
     
     // navigation view controller
     @IBOutlet weak var backNavigationButton: UIButton!
@@ -82,6 +82,11 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     let tempVideoPath: String = NSTemporaryDirectory().appending("tmpMov.mov") as String
     var exportSession: AVAssetExportSession?
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        UIApplication.shared.setStatusBarHidden(false, with: UIStatusBarAnimation.fade)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.coverCollectionView.dataSource = self
@@ -95,6 +100,9 @@ class PetPolarVideoTrimmerViewController: UIViewController {
         
         self.trimModeButton.addTarget(self, action: #selector(PetPolarVideoTrimmerViewController.trimmerModeDidTap), for: UIControlEvents.touchUpInside)
         self.coverModeButton.addTarget(self, action: #selector(PetPolarVideoTrimmerViewController.coverModeDidTap), for: UIControlEvents.touchUpInside)
+        self.backNavigationButton.addTarget(self, action: #selector(PetPolarVideoTrimmerViewController.closeViewController), for: UIControlEvents.touchUpInside)
+        self.muteButton.addTarget(self, action: #selector(PetPolarVideoTrimmerViewController.soundToggle), for: UIControlEvents.touchUpInside)
+        self.nextButton.addTarget(self, action: #selector(PetPolarVideoTrimmerViewController.nextFinish), for: UIControlEvents.touchUpInside)
         
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(PetPolarVideoTrimmerViewController.handleLongPress(longPress:)))
         longPress.minimumPressDuration = 0.01
@@ -111,28 +119,25 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     
     // mark - user event
     
-    @IBAction func backNavigationDidTap(_ sender: Any) {
+    @IBAction func selectAsset(_ sender: Any) {
         self.selectAsset()
     }
     
-    @IBAction func soundToggleDidTap(_ sender: Any) {
-        self.soundToggle()
-    }
-    
-    @IBAction func nextDidTap(_ sender: Any) {
+    func nextFinish() {
         self.trimVideo()
         self.getCoverImage()
     }
     
-    func dismissViewController() {
+    func closeViewController() {
         self.setVideoState(status: false)
         self.player = nil
         self.playerItem = nil
         self.playerLayer = nil
         self.playerLayerCover = nil
+        UIApplication.shared.setStatusBarHidden(false, with: UIStatusBarAnimation.fade)
         self.dismiss(animated: true, completion: {
             print("PetPolarVideoTrimmerViewController: delegate")
-            self.delegate?.dismissViewController()
+            self.delegate?.trimmerDismissViewController()
         })
     }
     
@@ -142,10 +147,15 @@ class PetPolarVideoTrimmerViewController: UIViewController {
             self.coverActionView.isHidden = false
             self.trimmerActionView.isHidden = true
             
-            self.getSampleCoverImages()
+            self.coverModeButton.setTitleColor(UIColor.blue, for: UIControlState.normal)
+            self.coverModeButton.setTitleColor(UIColor.blue, for: UIControlState.highlighted)
+            self.trimModeButton.setTitleColor(UIColor.white, for: UIControlState.normal)
+            self.trimModeButton.setTitleColor(UIColor.white, for: UIControlState.highlighted)
             
             self.coverModeUnderView.isHidden = false
             self.trimmerModeUnderView.isHidden = true
+            
+            self.getSampleCoverImages()
             
             self.setVideoState(status: false)
             print("cover at time: \(self.coverAtTime)")
@@ -158,6 +168,11 @@ class PetPolarVideoTrimmerViewController: UIViewController {
             self.editMode = .trim
             self.coverActionView.isHidden = true
             self.trimmerActionView.isHidden = false
+            
+            self.coverModeButton.setTitleColor(UIColor.white, for: UIControlState.normal)
+            self.coverModeButton.setTitleColor(UIColor.white, for: UIControlState.highlighted)
+            self.trimModeButton.setTitleColor(UIColor.blue, for: UIControlState.normal)
+            self.trimModeButton.setTitleColor(UIColor.blue, for: UIControlState.highlighted)
             
             self.coverModeUnderView.isHidden = true
             self.trimmerModeUnderView.isHidden = false
