@@ -369,6 +369,7 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
     
     func setupVideoOutput() {
         self.videoOutput = AVCaptureMovieFileOutput()
+        self.videoOutput?.movieFragmentInterval = kCMTimeInvalid
     }
     
     func setupCaptureSession() {
