@@ -313,8 +313,8 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
                 
                 let composition = AVMutableComposition()
                 // destination track source
-                let videoCompTrack = composition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: CMPersistentTrackID())
-                let audioCompTrack = composition.addMutableTrack(withMediaType: AVMediaTypeAudio, preferredTrackID: CMPersistentTrackID())
+                let videoCompTrack: AVMutableCompositionTrack = composition.addMutableTrack(withMediaType: AVMediaTypeVideo, preferredTrackID: CMPersistentTrackID())
+                let audioCompTrack: AVMutableCompositionTrack = composition.addMutableTrack(withMediaType: AVMediaTypeAudio, preferredTrackID: CMPersistentTrackID())
                 
                 // pointer to first track of source
                 // let assetVideoTrack: AVAssetTrack = sourceAsset.tracks(withMediaType: AVMediaTypeVideo).first! as AVAssetTrack
