@@ -354,6 +354,10 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
     
     func trimVideo() {
         
+        // crop here
+        self.cropVideo()
+        return ;
+        
         self.deleteTepmFile()
         let destinationURL: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
         
@@ -431,9 +435,6 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
                             UISaveVideoAtPathToSavedPhotosAlbum(movieUrl.relativePath!, self, #selector(PetPolarVideoTrimmerViewController.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
                         })
                     }
-                    
-                        // crop here
-                    self.cropVideo()
                     
                 })
                 
