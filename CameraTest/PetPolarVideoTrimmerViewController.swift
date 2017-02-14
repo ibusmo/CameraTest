@@ -290,7 +290,70 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
         self.stopTime = endTime
     }
     
+    func cropVideo() {
+        
+        print("cropVideo()")
+        
+        self.deleteTepmFile()
+        let destinationURL: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
+        
+        if let url = self.url, let asset = self.asset {
+            
+            print("cropVideo() CMTimeGetSeconds(asset.duration): \(CMTimeGetSeconds(asset.duration))")
+            
+            // setup time range
+            let start: CMTime               = kCMTimeZero
+            let duration: CMTime            = CMTimeMakeWithSeconds(Float64(CMTimeGetSeconds(asset.duration)), asset.duration.timescale)
+            let timeRangeForCurrentSlice    = CMTimeRangeMake(start, duration)
+            
+            // equal as assetVideoTrack of composition in trimVideo()
+            let assetVideoTrack = asset.tracks(withMediaType: AVMediaTypeVideo).first
+            
+            print("assetVideoTrackTmp.naturalSize.height: \(assetVideoTrack!.naturalSize.height)")
+            
+            let transformer: AVMutableVideoCompositionLayerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: assetVideoTrack!)
+            transformer.setTransform(assetVideoTrack!.preferredTransform, at: kCMTimeZero)
+            
+            let instruction: AVMutableVideoCompositionInstruction = AVMutableVideoCompositionInstruction()
+            instruction.timeRange = timeRangeForCurrentSlice
+            instruction.layerInstructions = NSArray(object: transformer) as [AnyObject] as [AnyObject] as! [AVVideoCompositionLayerInstruction]
+            
+            let videoComposition: AVMutableVideoComposition = AVMutableVideoComposition()
+            videoComposition.frameDuration = CMTimeMake(1, 30)
+            videoComposition.renderSize = CGSize(width: 360, height: 360)
+            videoComposition.instructions = NSArray(object: instruction) as [AnyObject] as [AnyObject] as! [AVVideoCompositionInstructionProtocol]
+            
+            // Export by passthrough preset and compsiton with video, audio
+            self.exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetMediumQuality)
+            self.exportSession?.videoComposition = videoComposition
+            self.exportSession?.outputURL = destinationURL as URL
+            self.exportSession?.outputFileType = AVFileTypeQuickTimeMovie
+            self.exportSession?.shouldOptimizeForNetworkUse = true
+            self.exportSession?.exportAsynchronously(completionHandler: { () -> Void in
+                
+                switch self.exportSession!.status {
+                case .failed:
+                    print("Export failed")
+                    print(self.exportSession?.error?.localizedDescription as Any)
+                case .cancelled:
+                    print("Export canceled")
+                default:
+                    print("Export success")
+                    // copy asset to Photo Libraries
+                    DispatchQueue.main.async(execute: {
+                        let movieUrl: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
+                        UISaveVideoAtPathToSavedPhotosAlbum(movieUrl.relativePath!, self, #selector(PetPolarVideoTrimmerViewController.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
+                    })
+                }
+                
+            })
+            
+        }
+        
+    }
+    
     func trimVideo() {
+        
         self.deleteTepmFile()
         let destinationURL: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
         
@@ -349,7 +412,6 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
                 self.exportSession?.outputURL = destinationURL as URL
                 self.exportSession?.outputFileType = AVFileTypeQuickTimeMovie
                 self.exportSession?.shouldOptimizeForNetworkUse = true
-                //                self.exportSession?.timeRange = timeRangeForCurrentSlice
                 self.exportSession?.exportAsynchronously(completionHandler: { () -> Void in
                     
                     print("trimVideo() finish")
@@ -369,7 +431,12 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
                             UISaveVideoAtPathToSavedPhotosAlbum(movieUrl.relativePath!, self, #selector(PetPolarVideoTrimmerViewController.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
                         })
                     }
+                    
+                        // crop here
+                    self.cropVideo()
+                    
                 })
+                
             } else {
                 print("trimVideo() cannot trim cause url, asset nil")
             }
@@ -383,6 +450,7 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
         if exist {
             do {
                 try fm.removeItem(at: url as URL)
+                print("file was romeved")
             } catch {
                 print("file romeve error")
             }
