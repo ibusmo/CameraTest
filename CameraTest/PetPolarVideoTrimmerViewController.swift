@@ -324,6 +324,7 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
                     // insert video, audio track into composition
                     do {
                         try videoCompTrack.insertTimeRange(timeRangeForCurrentSlice, of: assetVideoTrack, at: kCMTimeZero)
+                        videoCompTrack.preferredTransform = assetVideoTrack.preferredTransform
                     } catch {
                         print("trimVideo() insertTimeRange video error")
                     }
