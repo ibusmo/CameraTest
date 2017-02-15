@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1F2404CA1E35C0D50081967A /* Pods_CameraTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F2404C91E35C0D50081967A /* Pods_CameraTest.framework */; };
 		1F2404CC1E35C0DB0081967A /* ICGVideoTrimmer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F2404CB1E35C0DB0081967A /* ICGVideoTrimmer.framework */; };
+		1F8FC7481E544BEE00A66EE9 /* VideoEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F8FC7471E544BEE00A66EE9 /* VideoEditor.swift */; };
 		1F9AAB811E30D2E20082018D /* PetPolarVideoTrimmerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9AAB7F1E30D2E20082018D /* PetPolarVideoTrimmerViewController.swift */; };
 		1F9AAB821E30D2E20082018D /* PetPolarVideoTrimmerViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1F9AAB801E30D2E20082018D /* PetPolarVideoTrimmerViewController.xib */; };
 		1FA06A2B1E24AB46007C0638 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FA06A2A1E24AB46007C0638 /* AppDelegate.swift */; };
@@ -46,6 +47,7 @@
 /* Begin PBXFileReference section */
 		1F2404C91E35C0D50081967A /* Pods_CameraTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Pods_CameraTest.framework; path = "Pods/../build/Debug-iphoneos/Pods_CameraTest.framework"; sourceTree = "<group>"; };
 		1F2404CB1E35C0DB0081967A /* ICGVideoTrimmer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ICGVideoTrimmer.framework; path = "Pods/../build/Debug-iphoneos/ICGVideoTrimmer/ICGVideoTrimmer.framework"; sourceTree = "<group>"; };
+		1F8FC7471E544BEE00A66EE9 /* VideoEditor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoEditor.swift; sourceTree = "<group>"; };
 		1F9AAB7F1E30D2E20082018D /* PetPolarVideoTrimmerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PetPolarVideoTrimmerViewController.swift; sourceTree = "<group>"; };
 		1F9AAB801E30D2E20082018D /* PetPolarVideoTrimmerViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PetPolarVideoTrimmerViewController.xib; sourceTree = "<group>"; };
 		1FA06A271E24AB46007C0638 /* CameraTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CameraTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -130,6 +132,7 @@
 		1FA06A291E24AB46007C0638 /* CameraTest */ = {
 			isa = PBXGroup;
 			children = (
+				1F8FC7471E544BEE00A66EE9 /* VideoEditor.swift */,
 				1FA06A581E24AB53007C0638 /* PetPolarCameraVideoViewController.swift */,
 				1FA06A591E24AB53007C0638 /* PetPolarCameraVideoViewController.xib */,
 				1F9AAB7F1E30D2E20082018D /* PetPolarVideoTrimmerViewController.swift */,
@@ -472,6 +475,7 @@
 				1FA06A2D1E24AB46007C0638 /* ViewController.swift in Sources */,
 				1FA539A31E3F13F300B2A8A5 /* CoverCollectionViewCell.swift in Sources */,
 				1FA06A5A1E24AB53007C0638 /* PetPolarCameraVideoViewController.swift in Sources */,
+				1F8FC7481E544BEE00A66EE9 /* VideoEditor.swift in Sources */,
 				1FA06A2B1E24AB46007C0638 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

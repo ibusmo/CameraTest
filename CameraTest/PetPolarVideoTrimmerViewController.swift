@@ -355,13 +355,14 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
     func trimVideo() {
         
         // crop here
-        self.cropVideo()
+        //        self.cropVideo()
+        VideoEditor.crop(asset: self.asset!)
         return ;
         
         self.deleteTepmFile()
         let destinationURL: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
         
-        if let url = self.url, let asset = self.asset {
+        if let url = self.url, let asset = self.asset  {
             
             print("trimVideo() start \(self.tempVideoPath)")
             self.nextButton.isHidden = true
