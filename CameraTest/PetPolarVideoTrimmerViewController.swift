@@ -89,6 +89,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         self.coverCollectionView.dataSource = self
         self.coverCollectionView.delegate = self
         self.coverCollectionView.register(UINib(nibName: "CoverCollectionViewCell", bundle: nil), forCellWithReuseIdentifier: "CoverCollectionViewCell")
@@ -107,9 +108,9 @@ class PetPolarVideoTrimmerViewController: UIViewController {
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(PetPolarVideoTrimmerViewController.handleLongPress(longPress:)))
         longPress.minimumPressDuration = 0.01
         self.coverPointButton.addGestureRecognizer(longPress)
-        
+
         self.trimmerModeDidTap()
-        
+
         self.coverPointButton.layer.borderWidth = 1.0
         self.coverPointButton.layer.borderColor = UIColor.white.cgColor
         self.coverCollectionView.alpha = 0.3

@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CameraTest/PetPolarVideoTrimmerViewController.swift"
-            timestampString = "509576773.443134"
+            timestampString = "509579933.323753"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "422"
-            endingLineNumber = "422"
+            startingLineNumber = "423"
+            endingLineNumber = "423"
             landmarkName = "deleteTepmFile()"
             landmarkType = "7">
          </BreakpointContent>
