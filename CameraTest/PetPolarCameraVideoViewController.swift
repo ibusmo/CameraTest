@@ -135,6 +135,20 @@ class PetPolarCameraVideoViewController: UIViewController {
     }
     
     func library() {
+        if (self.cameraMode == .photo) {
+            //self.setCameraToPhotoMode()
+        } else if(self.cameraMode == .video) {
+            self.setFlash(status: false)
+        }
+        
+        //self.setupBottomView(mode: .lib)
+        
+        self.trimmerViewController = PetPolarVideoTrimmerViewController(nibName: "PetPolarVideoTrimmerViewController", bundle: nil)
+        self.trimmerViewController?.delegate = self
+        self.present(self.trimmerViewController!, animated: true, completion: nil)
+    }
+    
+    func nextView() -> PetPolarVideoTrimmerViewController {
         
         if (self.cameraMode == .photo) {
             //self.setCameraToPhotoMode()
@@ -146,6 +160,25 @@ class PetPolarCameraVideoViewController: UIViewController {
         
         self.trimmerViewController = PetPolarVideoTrimmerViewController(nibName: "PetPolarVideoTrimmerViewController", bundle: nil)
         self.trimmerViewController?.delegate = self
+        self.present(self.trimmerViewController!, animated: true, completion: nil)
+        
+        return self.trimmerViewController!
+    }
+    
+    func nextView(url: URL) {
+        print("nextView() url: \(url)")
+        
+        if (self.cameraMode == .photo) {
+            //self.setCameraToPhotoMode()
+        } else if(self.cameraMode == .video) {
+            self.setFlash(status: false)
+        }
+        
+        //self.setupBottomView(mode: .lib)
+        
+        self.trimmerViewController = PetPolarVideoTrimmerViewController(nibName: "PetPolarVideoTrimmerViewController", bundle: nil)
+        self.trimmerViewController?.delegate = self
+        self.trimmerViewController?.url = url
         self.present(self.trimmerViewController!, animated: true, completion: nil)
     }
     
@@ -322,9 +355,12 @@ extension PetPolarCameraVideoViewController: VideoEditorDelegate {
     //OUTPUT VIDEO2 CROPED
     func cropExportOutput(success: Bool, outputFile: URL) {
         print("cropExportOutput() seccess: \(success)")
-        self.hideLoadingView()
+//        self.hideLoadingView()
        
         if (success) {
+            
+            self.nextView(url: outputFile)
+            
             if UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(outputFile.relativePath) {
                 UISaveVideoAtPathToSavedPhotosAlbum(
                     outputFile.relativePath,
@@ -334,7 +370,8 @@ extension PetPolarCameraVideoViewController: VideoEditorDelegate {
                 )
                 
             } else {
-                print("didFinishRecordingToOutputFileAt() Save to PhotosAlbum fail")
+                print("didFinishRecordingToOutputFileAt() Save to PhotosAlbum failed")
+                
             }
             
         } else {
@@ -345,6 +382,8 @@ extension PetPolarCameraVideoViewController: VideoEditorDelegate {
     func trimExportOutput(success: Bool, outputFile: URL){}
     
     func video(videoPath: NSString, didFinishSavingWithError error: NSError?, contextInfo info: AnyObject) {
+        self.hideLoadingView()
+        
         var title = ""
         var message = ""
         if (error != nil) {

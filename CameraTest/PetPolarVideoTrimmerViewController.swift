@@ -115,6 +115,10 @@ class PetPolarVideoTrimmerViewController: UIViewController {
         self.coverCollectionView.alpha = 0.3
         self.coverCollectionView.layer.borderWidth = 0.5
         self.coverCollectionView.layer.borderColor = UIColor.white.cgColor
+        
+        if (self.url != nil) {
+            self.setupAssetPicker(url: self.url!)
+        }
     }
     
     // mark - user event
@@ -216,6 +220,10 @@ extension PetPolarVideoTrimmerViewController: UIImagePickerControllerDelegate {
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         picker.dismiss(animated: true, completion: nil)
         let url = info[UIImagePickerControllerMediaURL] as! URL
+        self.setupAssetPicker(url: url)
+    }
+
+    func setupAssetPicker(url: URL) {
         self.url = url
         self.asset = AVAsset(url: url)
         self.setupTrimmerView(url: url)
