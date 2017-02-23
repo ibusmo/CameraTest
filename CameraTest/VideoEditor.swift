@@ -112,14 +112,21 @@ class VideoEditor: NSObject {
                     
                 case .completed:
                     print("VideoEditor: export() completed")
-                    //OUTPUT
+                    //OUTPUT VIDEO 1 CROPED
                     delegateB?.cropExportOutput(success: true, outputFile: destinationURL as URL)
-                    
+                    /*
                     DispatchQueue.main.async(execute: {
-                        // copy asset to Photo Libraries
-                        UISaveVideoAtPathToSavedPhotosAlbum(destinationURL.relativePath!, self, #selector(VideoEditor.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
+                 // copy asset to Photo Libraries
+                 
+                 if UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(destinationURL.relativePath!) {
+                 UISaveVideoAtPathToSavedPhotosAlbum(destinationURL.relativePath!, self, #selector(VideoEditor.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
+                 } else {
+                 print("didFinishRecordingToOutputFileAt() Save to PhotosAlbum fail")
+                 }
+                 
                         
                     })
+ */
                 
             default:
                 print("VideoEditor: export() not completed")

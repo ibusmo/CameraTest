@@ -101,6 +101,7 @@ class PetPolarCameraVideoViewController: UIViewController {
         self.captureButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.captureCamera), for: UIControlEvents.touchUpInside)
         self.flashButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.toggleFlash), for: UIControlEvents.touchUpInside)
         self.swapButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.swapCamrea), for: UIControlEvents.touchUpInside)
+        
         self.libraryButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.library), for: UIControlEvents.touchUpInside)
         self.photoButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.setCameraToPhotoMode), for: UIControlEvents.touchUpInside)
         self.videoButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.setCameraToVideoMode), for: UIControlEvents.touchUpInside)
@@ -134,7 +135,14 @@ class PetPolarCameraVideoViewController: UIViewController {
     }
     
     func library() {
-        self.setupBottomView(mode: .lib)
+        
+        if (self.cameraMode == .photo) {
+            //self.setCameraToPhotoMode()
+        } else if(self.cameraMode == .video) {
+            self.setFlash(status: false)
+        }
+        
+        //self.setupBottomView(mode: .lib)
         
         self.trimmerViewController = PetPolarVideoTrimmerViewController(nibName: "PetPolarVideoTrimmerViewController", bundle: nil)
         self.trimmerViewController?.delegate = self
@@ -215,8 +223,8 @@ class PetPolarCameraVideoViewController: UIViewController {
             if self.cameraInput == .back {
                 self.flashButton.isHidden = true
             }
-            self.recordTimeLimitChecker()
             self.captureButton.backgroundColor = UIColor.red
+            self.recordTimeLimitChecker()
         } else {
             self.stopRecordVideo()
             self.isRecording = false
@@ -226,16 +234,23 @@ class PetPolarCameraVideoViewController: UIViewController {
                 self.flashButton.isHidden = false
             }
             self.captureButton.backgroundColor = UIColor.clear
+            self.recordTimeLimitReset();
         }
     }
     
     func recordTimeLimitChecker() {
+        print("recordTimeLimitChecker()")
         self.recordTimeLimit = Timer.scheduledTimer(timeInterval: self.videoLimitTime, target: self, selector: #selector(PetPolarCameraVideoViewController.recordTimeLimitStop), userInfo: nil, repeats: false)
     }
     
-    func recordTimeLimitStop() {
+    func recordTimeLimitReset() {
+        print("recordTimeLimitReset()")
         self.recordTimeLimit?.invalidate()
         self.recordTimeLimit = nil
+    }
+    
+    func recordTimeLimitStop() {
+        print("recordTimeLimitStop()")
         self.toggleRecordVideo()
     }
     
@@ -269,8 +284,17 @@ class PetPolarCameraVideoViewController: UIViewController {
         self.dismiss(animated: true, completion: {
             print("PetPolarCameraVideoViewController: delegate")
             self.delegate?.cameraDismissViewController()
+            self.hideLoadingView()
         })
     }
+
+    func showLoadingView() {
+        print("showLoadingView() ------------------------------------------------------------------------------------------ BLOCKING VIEW")
+    }
+
+    func hideLoadingView() {
+        print("hideLoadingView() ------------------------------------------------------------------------------------------ UNBLOCK VIEW")
+    }   
 
 }
 
@@ -278,7 +302,7 @@ extension PetPolarCameraVideoViewController: AVCaptureFileOutputRecordingDelegat
     //satrtRecordVideo()
     //OUTPUT VIDEO1 RECORDED
     public func capture(_ captureOutput: AVCaptureFileOutput!, didFinishRecordingToOutputFileAt outputFileURL: URL!, fromConnections connections: [Any]!, error: Error!) {
-        
+
         print("didFinishRecordingToOutputFileAt() captureOutput: \(captureOutput)")
         print("didFinishRecordingToOutputFileAt() outputFileURL: \(outputFileURL)")
         
@@ -286,8 +310,8 @@ extension PetPolarCameraVideoViewController: AVCaptureFileOutputRecordingDelegat
             print("didFinishRecordingToOutputFileAt() capture did finish error: \(error)")
             
         } else {
+            self.showLoadingView()
             VideoEditor.crop(url: outputFileURL, delegate: self)
-            
         }
     }
     
@@ -298,6 +322,7 @@ extension PetPolarCameraVideoViewController: VideoEditorDelegate {
     //OUTPUT VIDEO2 CROPED
     func cropExportOutput(success: Bool, outputFile: URL) {
         print("cropExportOutput() seccess: \(success)")
+        self.hideLoadingView()
        
         if (success) {
             if UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(outputFile.relativePath) {
@@ -714,7 +739,13 @@ extension PetPolarCameraVideoViewController: PetPolarVideoTrimmerViewControllerD
     func trimmerDismissViewController() {
         print("PetPolarCameraVideoViewController: dismissViewController() delegate")
         self.trimmerViewController = nil
-        self.setCameraToPhotoMode()
+        
+        if (self.cameraMode == .photo) {
+            self.setCameraToPhotoMode()
+        } else if (self.cameraMode == .video) {
+            self.setCameraToVideoMode()
+        }
+
     }
     
 }

@@ -79,7 +79,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     var asset: AVAsset?
     var url: URL?
     // mark - tempolary asset
-    let tempVideoPath: String = NSTemporaryDirectory().appending("tmpMov.mp4") as String
+    let tempVideoPath: String = NSTemporaryDirectory().appending("trimTempExportMoviePath.mp4") as String
     var exportSession: AVAssetExportSession?
     
     override func viewWillAppear(_ animated: Bool) {
@@ -138,9 +138,18 @@ class PetPolarVideoTrimmerViewController: UIViewController {
         self.dismiss(animated: true, completion: {
             print("PetPolarVideoTrimmerViewController: delegate")
             self.delegate?.trimmerDismissViewController()
+            self.hideLoadingView()
         })
     }
-    
+
+    func showLoadingView() {
+        print("showLoadingView() ------------------------------------------------------------------------------------------ BLOCKING VIEW")
+    }
+
+    func hideLoadingView() {
+        print("hideLoadingView() ------------------------------------------------------------------------------------------ UNBLOCK VIEW")
+    }   
+
     func coverModeDidTap() {
         if self.editMode != .cover && self.isAssetExist() {
             self.editMode = .cover
@@ -290,73 +299,7 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
         self.stopTime = endTime
     }
     
-    func cropVideo() {
-        
-        print("cropVideo()")
-        
-        self.deleteTepmFile()
-        let destinationURL: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
-        
-        if let url = self.url, let asset = self.asset {
-            
-            print("cropVideo() CMTimeGetSeconds(asset.duration): \(CMTimeGetSeconds(asset.duration))")
-            
-            // setup time range
-            let start: CMTime               = kCMTimeZero
-            let duration: CMTime            = CMTimeMakeWithSeconds(Float64(CMTimeGetSeconds(asset.duration)), asset.duration.timescale)
-            let timeRangeForCurrentSlice    = CMTimeRangeMake(start, duration)
-            
-            // equal as assetVideoTrack of composition in trimVideo()
-            let assetVideoTrack = asset.tracks(withMediaType: AVMediaTypeVideo).first
-            
-            print("assetVideoTrackTmp.naturalSize.height: \(assetVideoTrack!.naturalSize.height)")
-            
-            let transformer: AVMutableVideoCompositionLayerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: assetVideoTrack!)
-            transformer.setTransform(assetVideoTrack!.preferredTransform, at: kCMTimeZero)
-            
-            let instruction: AVMutableVideoCompositionInstruction = AVMutableVideoCompositionInstruction()
-            instruction.timeRange = timeRangeForCurrentSlice
-            instruction.layerInstructions = NSArray(object: transformer) as [AnyObject] as [AnyObject] as! [AVVideoCompositionLayerInstruction]
-            
-            let videoComposition: AVMutableVideoComposition = AVMutableVideoComposition()
-            videoComposition.frameDuration = CMTimeMake(1, 30)
-            videoComposition.renderSize = CGSize(width: 360, height: 360)
-            videoComposition.instructions = NSArray(object: instruction) as [AnyObject] as [AnyObject] as! [AVVideoCompositionInstructionProtocol]
-            
-            // Export by passthrough preset and compsiton with video, audio
-            self.exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetMediumQuality)
-            self.exportSession?.videoComposition = videoComposition
-            self.exportSession?.outputURL = destinationURL as URL
-            self.exportSession?.outputFileType = AVFileTypeQuickTimeMovie
-            self.exportSession?.shouldOptimizeForNetworkUse = true
-            self.exportSession?.exportAsynchronously(completionHandler: { () -> Void in
-                
-                switch self.exportSession!.status {
-                case .failed:
-                    print("Export failed")
-                    print(self.exportSession?.error?.localizedDescription as Any)
-                case .cancelled:
-                    print("Export canceled")
-                default:
-                    print("Export success")
-                    // copy asset to Photo Libraries
-                    DispatchQueue.main.async(execute: {
-                        UISaveVideoAtPathToSavedPhotosAlbum(destinationURL.relativePath!, self, #selector(PetPolarVideoTrimmerViewController.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
-                    })
-                }
-                
-            })
-            
-        }
-        
-    }
-    
     func trimVideo() {
-        
-        // crop here
-        //        self.cropVideo()
-        VideoEditor.crop(asset: self.asset!, delegate: nil)
-        return ;
         
         self.deleteTepmFile()
         let destinationURL: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
@@ -417,8 +360,13 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
                 self.exportSession?.outputURL = destinationURL as URL
                 self.exportSession?.outputFileType = AVFileTypeQuickTimeMovie
                 self.exportSession?.shouldOptimizeForNetworkUse = true
+
+                self.showLoadingView()
+
                 self.exportSession?.exportAsynchronously(completionHandler: { () -> Void in
                     
+                    self.hideLoadingView()
+
                     print("trimVideo() finish")
                     self.nextButton.isHidden = false
                     
