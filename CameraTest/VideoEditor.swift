@@ -11,28 +11,52 @@ import Foundation
 import AVFoundation
 import MobileCoreServices
 
+enum VideoEditorMode {
+    case crop, trim
+}
+
+protocol VideoEditorDelegate {
+    func cropExportOutput(success: Bool, outputFile: URL)
+    func trimExportOutput(success: Bool, outputFile: URL)
+}
+
 class VideoEditor: NSObject {
     
-    class func crop(asset: AVAsset) {
+    static var delegateB: VideoEditorDelegate?
+    
+    static let cropTempExportMoviePath: String = NSTemporaryDirectory().appending("cropTempExportMovie.mov")     as String
+    static let trimTempExportMoviePath: String = NSTemporaryDirectory().appending("trimTempExportMoviePath.mov") as String
+    
+    class func crop(url : URL, delegate: VideoEditorDelegate?) {
+        let asset = AVAsset(url: url)
+        crop(asset: asset, delegate: delegate)
+    }
+    
+    class func crop(asset: AVAsset, delegate: VideoEditorDelegate?) {
         
-        let deletTempFileResult = deleteTempFile()
+        delegateB = delegate
+        
+        let deletTempFileResult = deleteTempFile(mode: .crop)
         let isClearTempFile: Bool = deletTempFileResult.0
         let destinationURL: NSURL = deletTempFileResult.1
         
-        print("cropVideo() \nsource: \(asset) \ndestination: \(destinationURL)")
+        print("VideoEditor: cropVideo() \nsource: \(asset) \ndestination: \(destinationURL)")
     
         if (!isClearTempFile) {
-            print("cropVideo() - problem with deleteTempFile()")
+            print("VideoEditor: cropVideo() - problem with deleteTempFile()")
+            delegateB?.cropExportOutput(success: false, outputFile: destinationURL as URL)
             return ;
         }
         
         if (!isCompatiblePresets(asset: asset)) {
-            print("cropVideo() - problem with checkCompatiblePresets()")
+            print("VideoEditor: cropVideo() - problem with checkCompatiblePresets()")
+            delegateB?.cropExportOutput(success: false, outputFile: destinationURL as URL)
             return ;
         }
         
         if (!isAssetReady(asset: asset)) {
-            print("cropVideo() - Cannot extract video track")
+            print("VideoEditor: cropVideo() - Cannot extract video track")
+            delegateB?.cropExportOutput(success: false, outputFile: destinationURL as URL)
             return ;
         }
         
@@ -70,29 +94,36 @@ class VideoEditor: NSObject {
         
         if exportSession == nil {
             print("export() nil")
+            delegateB?.cropExportOutput(success: false, outputFile: destinationURL as URL)
             return ;
         }
         
         exportSession!.exportAsynchronously(completionHandler: { () -> Void in
             
             switch (exportSession!.status) {
-            case .failed:
-                print("export() failed")
-                print(exportSession!.error?.localizedDescription as Any)
-                
-            case .cancelled:
-                print("export() canceled")
-                
-            case .completed:
-                print("export() completed")
-                DispatchQueue.main.async(execute: {
-                    // copy asset to Photo Libraries
-                    UISaveVideoAtPathToSavedPhotosAlbum(destinationURL.relativePath!, self, #selector(VideoEditor.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
+                case .failed:
+                    print("VideoEditor: export() failed")
+                    print(exportSession!.error?.localizedDescription as Any)
+                    delegateB?.cropExportOutput(success: false, outputFile: destinationURL as URL)
                     
-                })
+                case .cancelled:
+                    print("VideoEditor: export() canceled")
+                    delegateB?.cropExportOutput(success: false, outputFile: destinationURL as URL)
+                    
+                case .completed:
+                    print("VideoEditor: export() completed")
+                    //OUTPUT
+                    delegateB?.cropExportOutput(success: true, outputFile: destinationURL as URL)
+                    
+                    DispatchQueue.main.async(execute: {
+                        // copy asset to Photo Libraries
+                        UISaveVideoAtPathToSavedPhotosAlbum(destinationURL.relativePath!, self, #selector(VideoEditor.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
+                        
+                    })
                 
             default:
-                print("export() not completed")
+                print("VideoEditor: export() not completed")
+                delegateB?.cropExportOutput(success: false, outputFile: destinationURL as URL)
                 
             }
             
@@ -100,16 +131,11 @@ class VideoEditor: NSObject {
         
     }
     
-    @objc class func video(videoPath: NSString, didFinishSavingWithError error: NSError?, contextInfo info: AnyObject) {
+    class func video(videoPath: NSString, didFinishSavingWithError error: NSError?, contextInfo info: AnyObject) {
         if (error != nil) {
-            print("Saved to photos ablum: \(error?.localizedDescription)")
+            print("VideoEditor: Saved to photos ablum: \(error?.localizedDescription)")
         } else {
-            print("Saved to photos ablum: success")
-        }
-        
-        // Clear video temp file
-        if (!deleteTempFile().0) {
-            print("cropVideo() - problem with deleteTempFile()")
+            print("VideoEditor: Saved to photos ablum: success")
         }
     }
     
@@ -129,16 +155,22 @@ class VideoEditor: NSObject {
         return false
     }
     
-    class func getDestinationURL() -> NSURL {
-        let tempVideoPath: String = NSTemporaryDirectory().appending("tempExportMovie.mov") as String
-        let destinationURL: NSURL = NSURL(fileURLWithPath: tempVideoPath)
-        
-        return destinationURL
+    class func deleteTempFile(mode: VideoEditorMode) -> (Bool, NSURL) {
+        if (mode == .crop) {
+            let url: NSURL = NSURL(fileURLWithPath: cropTempExportMoviePath)
+            return deleteTempFile(url: url)
+            
+        } else if (mode == .trim) {
+            let url: NSURL = NSURL(fileURLWithPath: trimTempExportMoviePath)
+            return deleteTempFile(url: url)
+            
+        } else {
+            return (false, NSURL())
+        }
     }
     
-    class func deleteTempFile() -> (Bool, NSURL) {
-        let tempVideoPath: String = NSTemporaryDirectory().appending("tempExportMovie.mov") as String
-        let url: NSURL = NSURL(fileURLWithPath: tempVideoPath)
+    class func deleteTempFile(urlString: String) -> (Bool, NSURL) {
+        let url: NSURL = NSURL(fileURLWithPath: urlString)
         return deleteTempFile(url: url)
     }
     
@@ -148,13 +180,13 @@ class VideoEditor: NSObject {
         if (exist) {
             do {
                 try fm.removeItem(at: url as URL)
-                print("file was romeved - \(url)")
+                print("VideoEditor: file was romeved - \(url)")
             } catch {
-                print("file romeve error - \(url)")
+                print("VideoEditor: file romeve error - \(url)")
                 return (false, url)
             }
         } else {
-            print("no file by that name - \(url)")
+            print("VideoEditor: no file by that name - \(url)")
         }
         return (true, url)
     }

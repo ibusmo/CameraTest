@@ -79,7 +79,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     var asset: AVAsset?
     var url: URL?
     // mark - tempolary asset
-    let tempVideoPath: String = NSTemporaryDirectory().appending("tmpMov.mov") as String
+    let tempVideoPath: String = NSTemporaryDirectory().appending("tmpMov.mp4") as String
     var exportSession: AVAssetExportSession?
     
     override func viewWillAppear(_ animated: Bool) {
@@ -341,8 +341,7 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
                     print("Export success")
                     // copy asset to Photo Libraries
                     DispatchQueue.main.async(execute: {
-                        let movieUrl: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
-                        UISaveVideoAtPathToSavedPhotosAlbum(movieUrl.relativePath!, self, #selector(PetPolarVideoTrimmerViewController.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
+                        UISaveVideoAtPathToSavedPhotosAlbum(destinationURL.relativePath!, self, #selector(PetPolarVideoTrimmerViewController.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
                     })
                 }
                 
@@ -356,7 +355,7 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
         
         // crop here
         //        self.cropVideo()
-        VideoEditor.crop(asset: self.asset!)
+        VideoEditor.crop(asset: self.asset!, delegate: nil)
         return ;
         
         self.deleteTepmFile()
@@ -412,6 +411,7 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
                     }
                 }
                 
+                //OUTPUT VIDEO 1
                 // Export by passthrough preset and compsiton with video, audio
                 self.exportSession = AVAssetExportSession(asset: composition, presetName: preferredPreset)
                 self.exportSession?.outputURL = destinationURL as URL
@@ -433,7 +433,18 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
                         // copy asset to Photo Libraries
                         DispatchQueue.main.async(execute: {
                             let movieUrl: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
-                            UISaveVideoAtPathToSavedPhotosAlbum(movieUrl.relativePath!, self, #selector(PetPolarVideoTrimmerViewController.video(videoPath:didFinishSavingWithError:contextInfo:)), nil)
+                            
+                            if UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(movieUrl.relativePath!) {
+                                UISaveVideoAtPathToSavedPhotosAlbum(
+                                    movieUrl.relativePath!,
+                                    self,
+                                    #selector(PetPolarVideoTrimmerViewController.video(videoPath:didFinishSavingWithError:contextInfo:)),
+                                    nil
+                                )
+                            } else {
+                                print("didFinishRecordingToOutputFileAt() Save to PhotosAlbum fail")
+                            }
+                            
                         })
                     }
                     

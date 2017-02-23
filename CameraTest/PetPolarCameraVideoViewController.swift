@@ -29,6 +29,10 @@ class PetPolarCameraVideoViewController: UIViewController {
     
     var delegate: PetPolarCameraVideoViewControllerDelegate?
     
+    let videoLimitTime = 15.0;
+    
+    let fileName = "recordTempMovie.mp4";
+    
     // Flag & Mode
     var cameraMode: CameraMode = .video
     var cameraInput: CameraInput = .back
@@ -55,6 +59,9 @@ class PetPolarCameraVideoViewController: UIViewController {
     var captureSession: AVCaptureSession?
     
     var previewLayer = AVCaptureVideoPreviewLayer()
+    
+    // Record Time Limit
+    var recordTimeLimit: Timer?
     
     // View Conroller
     var trimmerViewController: PetPolarVideoTrimmerViewController?
@@ -208,6 +215,7 @@ class PetPolarCameraVideoViewController: UIViewController {
             if self.cameraInput == .back {
                 self.flashButton.isHidden = true
             }
+            self.recordTimeLimitChecker()
             self.captureButton.backgroundColor = UIColor.red
         } else {
             self.stopRecordVideo()
@@ -221,6 +229,16 @@ class PetPolarCameraVideoViewController: UIViewController {
         }
     }
     
+    func recordTimeLimitChecker() {
+        self.recordTimeLimit = Timer.scheduledTimer(timeInterval: self.videoLimitTime, target: self, selector: #selector(PetPolarCameraVideoViewController.recordTimeLimitStop), userInfo: nil, repeats: false)
+    }
+    
+    func recordTimeLimitStop() {
+        self.recordTimeLimit?.invalidate()
+        self.recordTimeLimit = nil
+        self.toggleRecordVideo()
+    }
+    
     func takePhotoToLibary() {
         print("TakePhoto()")
         self.imageOutput?.captureStillImageAsynchronously(from: self.imageConnection, completionHandler: { (buffer, error) in
@@ -228,8 +246,13 @@ class PetPolarCameraVideoViewController: UIViewController {
                 print("TakePhoto() error")
             } else {
                 print("TakePhoto() success")
+                
                 let imageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(buffer)
                 UIImageWriteToSavedPhotosAlbum(UIImage(data: imageData!)!, nil, nil, nil)
+                
+                //OUTPUT PHOTO
+                // To CropViewController
+                
             }
         })
     }
@@ -252,23 +275,63 @@ class PetPolarCameraVideoViewController: UIViewController {
 }
 
 extension PetPolarCameraVideoViewController: AVCaptureFileOutputRecordingDelegate {
-    
+    //satrtRecordVideo()
+    //OUTPUT VIDEO1 RECORDED
     public func capture(_ captureOutput: AVCaptureFileOutput!, didFinishRecordingToOutputFileAt outputFileURL: URL!, fromConnections connections: [Any]!, error: Error!) {
-        print("didFinishRecordingToOutputFileAt() capture did finish")
         
         print("didFinishRecordingToOutputFileAt() captureOutput: \(captureOutput)")
         print("didFinishRecordingToOutputFileAt() outputFileURL: \(outputFileURL)")
         
         if error != nil {
             print("didFinishRecordingToOutputFileAt() capture did finish error: \(error)")
+            
         } else {
-            if UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(outputFileURL.relativePath) {
-                print("didFinishRecordingToOutputFileAt() Save to PhotosAlbum success")
-                UISaveVideoAtPathToSavedPhotosAlbum(outputFileURL.relativePath, nil, nil, nil)
+            VideoEditor.crop(url: outputFileURL, delegate: self)
+            
+        }
+    }
+    
+}
+
+extension PetPolarCameraVideoViewController: VideoEditorDelegate {
+    
+    //OUTPUT VIDEO2 CROPED
+    func cropExportOutput(success: Bool, outputFile: URL) {
+        print("cropExportOutput() seccess: \(success)")
+       
+        if (success) {
+            if UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(outputFile.relativePath) {
+                UISaveVideoAtPathToSavedPhotosAlbum(
+                    outputFile.relativePath,
+                    self,
+                    #selector(PetPolarCameraVideoViewController.video(videoPath:didFinishSavingWithError:contextInfo:)),
+                    nil
+                )
+                
             } else {
                 print("didFinishRecordingToOutputFileAt() Save to PhotosAlbum fail")
             }
+            
+        } else {
         }
+        
+    }
+    
+    func trimExportOutput(success: Bool, outputFile: URL){}
+    
+    func video(videoPath: NSString, didFinishSavingWithError error: NSError?, contextInfo info: AnyObject) {
+        var title = ""
+        var message = ""
+        if (error != nil) {
+            title = "Failed !"
+            message = "Saving Failed"
+        } else {
+            title = "Success !"
+            message = "Saved To Photo Album"
+        }
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.cancel, handler: nil))
+        self.present(alert, animated: true, completion: nil)
     }
     
 }
@@ -510,9 +573,8 @@ extension PetPolarCameraVideoViewController: CameraVideoSetup {
     func satrtRecordVideo() {
         print("recordVideo() start")
         
-        let fileName = "mysavefile.mp4";
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let filePathUrl = documentsURL.appendingPathComponent(fileName)
+        let filePathUrl = documentsURL.appendingPathComponent(self.fileName)
         
         print("recordVideo() path: \(filePathUrl)")
         
