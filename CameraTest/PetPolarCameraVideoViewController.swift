@@ -240,7 +240,9 @@ class PetPolarCameraVideoViewController: UIViewController {
                 self.flashButton.isHidden = true
             }
             self.captureButton.backgroundColor = UIColor.red
+            
             self.recordTimeLimitChecker()
+            
         } else {
             self.stopRecordVideo()
             self.isRecording = false
@@ -250,7 +252,10 @@ class PetPolarCameraVideoViewController: UIViewController {
                 self.flashButton.isHidden = false
             }
             self.captureButton.backgroundColor = UIColor.clear
+            
             self.recordTimeLimitReset();
+            
+//            self.library()
         }
     }
     
@@ -327,7 +332,9 @@ extension PetPolarCameraVideoViewController: AVCaptureFileOutputRecordingDelegat
             
         } else {
             self.showLoadingView()
-            VideoEditor.crop(url: outputFileURL, delegate: self)
+            DispatchQueue.main.async(execute: {
+                VideoEditor.crop(url: outputFileURL, delegate: self)
+            })
         }
     }
     
@@ -342,7 +349,12 @@ extension PetPolarCameraVideoViewController: VideoEditorDelegate {
        
         if (success) {
             
-            self.nextView(url: outputFile)
+            DispatchQueue.main.async(execute: {
+                self.nextView(url: outputFile)
+            })
+            
+//            self.trimmerViewController?.setupAssetPicker(url: outputFile)
+//            self.nextView(url: outputFile)
 //            self.library()
             
 //            if UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(outputFile.relativePath) {

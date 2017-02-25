@@ -225,6 +225,7 @@ extension PetPolarVideoTrimmerViewController: UIImagePickerControllerDelegate {
     }
 
     func setupAssetPicker(url: URL) {
+        print("setupAssetPicker() url: \(url)")
         self.url = url
         self.asset = AVAsset(url: url)
         self.setupTrimmerView(url: url)
