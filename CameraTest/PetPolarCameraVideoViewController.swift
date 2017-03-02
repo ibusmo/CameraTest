@@ -62,6 +62,7 @@ class PetPolarCameraVideoViewController: UIViewController {
     
     // Record Time Limit
     var recordTimeLimit: Timer?
+    var recordTimeCounter: Timer?
     
     // View Conroller
     var trimmerViewController: PetPolarVideoTrimmerViewController?
@@ -88,14 +89,9 @@ class PetPolarCameraVideoViewController: UIViewController {
     @IBOutlet weak var photoUnderView: UIView!
     @IBOutlet weak var videoUnderVIew: UIView!
     
-    override func viewWillAppear(_ animated: Bool) {
-        print("PetPolarCameraVideoViewController: viewWillAppear")
-        UIApplication.shared.setStatusBarHidden(true, with: UIStatusBarAnimation.fade)
-    }
-    
-    override func viewDidLoad() {
-        print("PetPolarCameraVideoViewController: viewDidLoad")
-        super.viewDidLoad()
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
         self.startCamera()
         
         self.captureButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.captureCamera), for: UIControlEvents.touchUpInside)
@@ -107,6 +103,16 @@ class PetPolarCameraVideoViewController: UIViewController {
         self.videoButton.addTarget(self, action: #selector(PetPolarCameraVideoViewController.setCameraToVideoMode), for: UIControlEvents.touchUpInside)
         
         self.setCameraToVideoMode()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        print("PetPolarCameraVideoViewController: viewWillAppear")
+        UIApplication.shared.setStatusBarHidden(true, with: UIStatusBarAnimation.fade)
+    }
+    
+    override func viewDidLoad() {
+        print("PetPolarCameraVideoViewController: viewDidLoad")
+        super.viewDidLoad()
     }
     
     // MARK: - camera
@@ -242,6 +248,7 @@ class PetPolarCameraVideoViewController: UIViewController {
             self.captureButton.backgroundColor = UIColor.red
             
             self.recordTimeLimitChecker()
+            self.recordTimeCounterChecker()
             
         } else {
             self.stopRecordVideo()
@@ -253,15 +260,19 @@ class PetPolarCameraVideoViewController: UIViewController {
             }
             self.captureButton.backgroundColor = UIColor.clear
             
-            self.recordTimeLimitReset();
+            self.recordTimeLimitReset()
+            self.recordTimeCounterReset()
             
 //            self.library()
         }
     }
     
+    // Record Limit Time
     func recordTimeLimitChecker() {
         print("recordTimeLimitChecker()")
         self.recordTimeLimit = Timer.scheduledTimer(timeInterval: self.videoLimitTime, target: self, selector: #selector(PetPolarCameraVideoViewController.recordTimeLimitStop), userInfo: nil, repeats: false)
+        
+        self.progressView.setProgress(0.0, animated: true);
     }
     
     func recordTimeLimitReset() {
@@ -273,6 +284,27 @@ class PetPolarCameraVideoViewController: UIViewController {
     func recordTimeLimitStop() {
         print("recordTimeLimitStop()")
         self.toggleRecordVideo()
+    }
+    
+    // Record Limit Time
+    func recordTimeCounterChecker() {
+        print("recordTimeCounterChecker()")
+        self.recordTimeCounter = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(PetPolarCameraVideoViewController.recordTimeCounterUpdating), userInfo: nil, repeats: true)
+    }
+    
+    func recordTimeCounterUpdating() {
+        let percent = 0.1 / (self.videoLimitTime * 1.0);
+        print("recordTimeCounterUpdating() \(percent) \(self.progressView.progress) \(Double(self.progressView.progress) + percent)")
+        
+        self.progressView.setProgress(self.progressView.progress + Float(percent), animated: true);
+    }
+    
+    func recordTimeCounterReset() {
+        print("recordTimeCounterReset()")
+        self.recordTimeCounter?.invalidate()
+        self.recordTimeCounter = nil
+        
+        self.progressView.setProgress(0.0, animated: true);
     }
     
     func takePhotoToLibary() {
