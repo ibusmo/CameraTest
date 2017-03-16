@@ -311,6 +311,10 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
     
     func trimVideo() {
         
+        VideoEditor.crop(asset: self.asset!, delegate: self)
+        
+        return
+        
         self.deleteTepmFile()
         let destinationURL: NSURL = NSURL(fileURLWithPath: self.tempVideoPath)
         
@@ -619,3 +623,62 @@ extension PetPolarVideoTrimmerViewController: UICollectionViewDelegate, UICollec
     }
     
 }
+
+extension PetPolarVideoTrimmerViewController: VideoEditorDelegate {
+    
+    //OUTPUT VIDEO2 CROPED
+    func cropExportOutput(success: Bool, outputFile: URL) {
+        print("cropExportOutput() seccess: \(success)")
+        self.hideLoadingView()
+        
+        if (success) {
+            
+//            DispatchQueue.main.async(execute: {
+//                self.nextView(url: outputFile)
+//            })
+            
+//            UISaveVideoAtPathToSavedPhotosAlbum(outputFile.relativePath, self, nil, nil)
+            
+//                        self.trimmerViewController?.setupAssetPicker(url: outputFile)
+//                        self.nextView(url: outputFile)
+//                        self.library()
+            
+                        if UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(outputFile.relativePath) {
+//                            UISaveVideoAtPathToSavedPhotosAlbum(
+//                                outputFile.relativePath,
+//                                self,
+//                                #selector(PetPolarCameraVideoViewController.video(videoPath:didFinishSavingWithError:contextInfo:)),
+//                                nil
+//                            )
+                            UISaveVideoAtPathToSavedPhotosAlbum(outputFile.relativePath, self, nil, nil)
+            
+                        } else {
+                            print("didFinishRecordingToOutputFileAt() Save to PhotosAlbum failed")
+            
+                        }
+            
+        } else {
+        }
+    }
+    
+    func trimExportOutput(success: Bool, outputFile: URL){}
+    
+//    func video(videoPath: NSString, didFinishSavingWithError error: NSError?, contextInfo info: AnyObject) {
+//        self.hideLoadingView()
+//        
+//        var title = ""
+//        var message = ""
+//        if (error != nil) {
+//            title = "Failed !"
+//            message = "Saving Failed"
+//        } else {
+//            title = "Success !"
+//            message = "Saved To Photo Album"
+//        }
+//        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+//        alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.cancel, handler: nil))
+//        self.present(alert, animated: true, completion: nil)
+//    }
+    
+}
+

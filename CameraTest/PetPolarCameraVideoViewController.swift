@@ -385,6 +385,8 @@ extension PetPolarCameraVideoViewController: VideoEditorDelegate {
                 self.nextView(url: outputFile)
             })
             
+            UISaveVideoAtPathToSavedPhotosAlbum(outputFile.relativePath, self, nil, nil)
+            
 //            self.trimmerViewController?.setupAssetPicker(url: outputFile)
 //            self.nextView(url: outputFile)
 //            self.library()

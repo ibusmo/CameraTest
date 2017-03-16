@@ -69,7 +69,18 @@ class VideoEditor: NSObject {
         let timeRangeForCurrentSlice    = CMTimeRangeMake(start, duration)
         
         let transformer: AVMutableVideoCompositionLayerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: assetVideoTrack)
-        transformer.setTransform(transformOrientation, at: kCMTimeZero)
+//        transformer.setTransform(transformOrientation, at: kCMTimeZero)
+        
+        let expectedRenderSize: CGFloat = 480.0
+        
+        let naturalSize = assetVideoTrack.naturalSize
+        let renderSize = min(naturalSize.width, naturalSize.height)
+        var scale = expectedRenderSize / renderSize
+//        scale = 1.0
+        print("VideoEditor: crop() naturalSize:\(naturalSize), renderSize:\(renderSize), scale:\(scale)")
+        
+        let transformScale = transformOrientation.scaledBy(x: scale, y: scale)
+        transformer.setTransform(transformScale, at: kCMTimeZero)
         
         let instruction: AVMutableVideoCompositionInstruction = AVMutableVideoCompositionInstruction()
         instruction.timeRange = timeRangeForCurrentSlice
@@ -77,7 +88,7 @@ class VideoEditor: NSObject {
         
         let videoComposition: AVMutableVideoComposition = AVMutableVideoComposition()
         videoComposition.frameDuration = CMTimeMake(1, 30)
-        videoComposition.renderSize = CGSize(width: 360, height: 360)
+        videoComposition.renderSize = CGSize(width: naturalSize.height, height: naturalSize.width)
         videoComposition.instructions = NSArray(object: instruction) as [AnyObject] as [AnyObject] as! [AVVideoCompositionInstructionProtocol]
         
         // Export by passthrough preset and compsiton with video, audio
