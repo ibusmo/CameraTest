@@ -75,12 +75,16 @@ class VideoEditor: NSObject {
         
         let naturalSize = assetVideoTrack.naturalSize
         let renderSize = min(naturalSize.width, naturalSize.height)
-        var scale = expectedRenderSize / renderSize
-//        scale = 1.0
+        var scale = renderSize / expectedRenderSize
+        scale = 1.0
         print("VideoEditor: crop() naturalSize:\(naturalSize), renderSize:\(renderSize), scale:\(scale)")
+        
+        let startCropX: CGFloat = naturalSize.height  - expectedRenderSize
+        let startCropY: CGFloat = 0
         
         let transformScale = transformOrientation.scaledBy(x: scale, y: scale)
         transformer.setTransform(transformScale, at: kCMTimeZero)
+        transformer.setCropRectangle(CGRect(x: 0, y: 0, width: 854.0, height: 480.0), at: kCMTimeZero)
         
         let instruction: AVMutableVideoCompositionInstruction = AVMutableVideoCompositionInstruction()
         instruction.timeRange = timeRangeForCurrentSlice
