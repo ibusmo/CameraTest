@@ -68,6 +68,83 @@ class VideoEditor: NSObject {
         let duration: CMTime            = CMTimeMakeWithSeconds(Float64(CMTimeGetSeconds(asset.duration)), asset.duration.timescale)
         let timeRangeForCurrentSlice    = CMTimeRangeMake(start, duration)
         
+        let expectedRenderSize: CGFloat = 480.0
+        let cropRect: CGRect = CGRect(x: 0.0, y: 0.0, width: expectedRenderSize, height: expectedRenderSize)
+        let cropOffX: CGFloat = cropRect.origin.x
+        let cropOffY: CGFloat = cropRect.origin.y
+        let cropWidth: CGFloat = cropRect.size.width
+        let cropHeight: CGFloat = cropRect.size.height
+        
+        print("naturalSize height: \(assetVideoTrack.naturalSize.height), width: \(assetVideoTrack.naturalSize.width)")
+        
+        let videoComposition: AVMutableVideoComposition = AVMutableVideoComposition()
+        videoComposition.frameDuration = CMTimeMake(1, 30)
+        
+        let instruction: AVMutableVideoCompositionInstruction = AVMutableVideoCompositionInstruction()
+        instruction.timeRange = timeRangeForCurrentSlice
+        
+        let transformer: AVMutableVideoCompositionLayerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: assetVideoTrack)
+        
+//        let videoOrientation: UIImageOrientation = getVideoOrientationFromAsset(asset: asset)
+        
+        var t1: CGAffineTransform = CGAffineTransform.identity
+        var t2: CGAffineTransform = CGAffineTransform.identity
+        
+        switch (getVideoOrientationFromAsset(asset: asset)) {
+        case .up :
+            videoComposition.renderSize = CGSize(width: assetVideoTrack.naturalSize.height, height: assetVideoTrack.naturalSize.width)
+            
+            t1 = CGAffineTransform(translationX: assetVideoTrack.naturalSize.height - cropOffX - (assetVideoTrack.naturalSize.height - expectedRenderSize),
+                                   y: 0 - cropOffY)
+            t2 = t1.rotated(by: CGFloat(M_PI_2))
+            break
+            
+        case .down :
+            videoComposition.renderSize = CGSize(width: assetVideoTrack.naturalSize.height, height: assetVideoTrack.naturalSize.width)
+            
+            t1 = CGAffineTransform(translationX: 0 - cropOffX,
+                                   y: assetVideoTrack.naturalSize.width - cropOffY) // not fixed width is the real height in upside down
+            t2 = t1.rotated(by: -(CGFloat)(M_PI_2))
+            break
+            
+        case .right :
+            videoComposition.renderSize = CGSize(width: assetVideoTrack.naturalSize.width, height: assetVideoTrack.naturalSize.height)
+            
+            t1 = CGAffineTransform(translationX: 0 - cropOffX,
+                                   y: 0 - cropOffY)
+            t2 = t1.rotated(by: 0)
+            break
+            
+        case .left :
+            videoComposition.renderSize = CGSize(width: assetVideoTrack.naturalSize.width, height: assetVideoTrack.naturalSize.height)
+            
+            t1 = CGAffineTransform(translationX: assetVideoTrack.naturalSize.width - cropOffX - (expectedRenderSize),
+                                   y: assetVideoTrack.naturalSize.height - cropOffY - (assetVideoTrack.naturalSize.height - expectedRenderSize))
+            t2 = t1.rotated(by: CGFloat(M_PI))
+            break
+            
+        default:
+            print("no supported orientation has been found in this video")
+            break
+            
+        }
+        
+        let naturalSize = assetVideoTrack.naturalSize
+        let renderSize = min(naturalSize.width, naturalSize.height)
+        let scale = expectedRenderSize / renderSize
+        let t3: CGAffineTransform = t2.scaledBy(x: scale, y: scale)
+        
+        print("naturalSize height: \(assetVideoTrack.naturalSize.height), width: \(assetVideoTrack.naturalSize.width), renderSize: \(renderSize), scale: \(scale)")
+        
+        let finalTransform: CGAffineTransform = t3
+        
+        transformer.setTransform(finalTransform, at: kCMTimeZero)
+        
+        instruction.layerInstructions = NSArray(object: transformer) as [AnyObject] as [AnyObject] as! [AVVideoCompositionLayerInstruction]
+        
+        videoComposition.instructions = NSArray(object: instruction) as [AnyObject] as [AnyObject] as! [AVVideoCompositionInstructionProtocol]
+        
+        /*
         let transformer: AVMutableVideoCompositionLayerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: assetVideoTrack)
 //        transformer.setTransform(transformOrientation, at: kCMTimeZero)
         
@@ -75,8 +152,8 @@ class VideoEditor: NSObject {
         
         let naturalSize = assetVideoTrack.naturalSize
         let renderSize = min(naturalSize.width, naturalSize.height)
-        var scale = renderSize / expectedRenderSize
-        scale = 1.0
+        var scale = expectedRenderSize / renderSize
+//        scale = 1.0
         print("VideoEditor: crop() naturalSize:\(naturalSize), renderSize:\(renderSize), scale:\(scale)")
         
         let startCropX: CGFloat = naturalSize.height  - expectedRenderSize
@@ -84,7 +161,7 @@ class VideoEditor: NSObject {
         
         let transformScale = transformOrientation.scaledBy(x: scale, y: scale)
         transformer.setTransform(transformScale, at: kCMTimeZero)
-        transformer.setCropRectangle(CGRect(x: 0, y: 0, width: 854.0, height: 480.0), at: kCMTimeZero)
+        transformer.setCropRectangle(CGRect(x: 0, y: 0, width: 1280.0, height: 720.0), at: kCMTimeZero)
         
         let instruction: AVMutableVideoCompositionInstruction = AVMutableVideoCompositionInstruction()
         instruction.timeRange = timeRangeForCurrentSlice
@@ -92,11 +169,12 @@ class VideoEditor: NSObject {
         
         let videoComposition: AVMutableVideoComposition = AVMutableVideoComposition()
         videoComposition.frameDuration = CMTimeMake(1, 30)
-        videoComposition.renderSize = CGSize(width: naturalSize.height, height: naturalSize.width)
+        videoComposition.renderSize = CGSize(width: cropWidth, height: cropHeight)
         videoComposition.instructions = NSArray(object: instruction) as [AnyObject] as [AnyObject] as! [AVVideoCompositionInstructionProtocol]
+        */
         
         // Export by passthrough preset and compsiton with video, audio
-        let exportSession: AVAssetExportSession? = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetMediumQuality)
+        let exportSession: AVAssetExportSession? = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality)
         exportSession?.videoComposition         = videoComposition
         exportSession?.outputURL                = destinationURL as URL
         exportSession?.outputFileType           = AVFileTypeQuickTimeMovie
@@ -151,6 +229,26 @@ class VideoEditor: NSObject {
             
         })
         
+    }
+    
+    class func getVideoOrientationFromAsset(asset: AVAsset) -> UIImageOrientation {
+        let videoTrack: AVAssetTrack = asset.tracks(withMediaType: AVMediaTypeVideo).first!
+        let size: CGSize = videoTrack.naturalSize
+        let txf: CGAffineTransform = videoTrack.preferredTransform
+        
+        if (size.width == txf.tx && size.height == txf.ty) {
+            print("getVideoOrientationFromAsset() .left")
+            return .left
+        } else if (txf.tx == 0 && txf.ty == 0) {
+            print("getVideoOrientationFromAsset() .right")
+            return .right
+        } else if (txf.tx == 0 && txf.ty == size.width) {
+            print("getVideoOrientationFromAsset() .down")
+            return .down
+        } else {
+            print("getVideoOrientationFromAsset() .up")
+            return .up
+        }
     }
     
     class func video(videoPath: NSString, didFinishSavingWithError error: NSError?, contextInfo info: AnyObject) {

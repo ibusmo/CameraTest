@@ -130,7 +130,7 @@ class PetPolarVideoTrimmerViewController: UIViewController {
     
     func nextFinish() {
         self.trimVideo()
-        self.getCoverImage()
+//        self.getCoverImage()
     }
     
     func closeViewController() {
