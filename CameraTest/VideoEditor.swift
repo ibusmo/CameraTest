@@ -75,6 +75,10 @@ class VideoEditor: NSObject {
         let cropWidth: CGFloat = cropRect.size.width
         let cropHeight: CGFloat = cropRect.size.height
         
+        let naturalSize = assetVideoTrack.naturalSize
+        let renderSize = min(naturalSize.width, naturalSize.height)
+        let scale = min(cropWidth, cropHeight) / renderSize
+        
         print("naturalSize height: \(assetVideoTrack.naturalSize.height), width: \(assetVideoTrack.naturalSize.width)")
         
         let videoComposition: AVMutableVideoComposition = AVMutableVideoComposition()
@@ -86,23 +90,23 @@ class VideoEditor: NSObject {
         let videoOrientation: UIImageOrientation = getVideoOrientationFromAsset(asset: asset)
         switch (videoOrientation) {
         case .up :
-            videoComposition.renderSize = CGSize(width: assetVideoTrack.naturalSize.height, height: assetVideoTrack.naturalSize.width)
+            videoComposition.renderSize = CGSize(width: cropHeight, height: cropWidth)
             
-            t1 = CGAffineTransform(translationX: assetVideoTrack.naturalSize.height - cropOffX - (assetVideoTrack.naturalSize.height - cropWidth),
+            t1 = CGAffineTransform(translationX: naturalSize.height - cropOffX - (naturalSize.height - naturalSize.height * scale),
                                    y: 0 - cropOffY)
             t2 = t1.rotated(by: CGFloat(M_PI_2))
             break
             
         case .down :
-            videoComposition.renderSize = CGSize(width: assetVideoTrack.naturalSize.height, height: assetVideoTrack.naturalSize.width)
+            videoComposition.renderSize = CGSize(width: cropHeight, height: cropWidth)
             
             t1 = CGAffineTransform(translationX: 0 - cropOffX,
-                                   y: assetVideoTrack.naturalSize.width - cropOffY) // not fixed width is the real height in upside down
+                                   y: naturalSize.width - cropOffY - (naturalSize.width - naturalSize.width * scale)) // not fixed width is the real height in upside down
             t2 = t1.rotated(by: -(CGFloat)(M_PI_2))
             break
             
         case .right :
-            videoComposition.renderSize = CGSize(width: assetVideoTrack.naturalSize.width, height: assetVideoTrack.naturalSize.height)
+            videoComposition.renderSize = CGSize(width: cropWidth, height: cropHeight)
             
             t1 = CGAffineTransform(translationX: 0 - cropOffX,
                                    y: 0 - cropOffY)
@@ -110,10 +114,10 @@ class VideoEditor: NSObject {
             break
             
         case .left :
-            videoComposition.renderSize = CGSize(width: assetVideoTrack.naturalSize.width, height: assetVideoTrack.naturalSize.height)
+            videoComposition.renderSize = CGSize(width: cropWidth, height: cropHeight)
             
-            t1 = CGAffineTransform(translationX: assetVideoTrack.naturalSize.width - cropOffX - (cropWidth),
-                                   y: assetVideoTrack.naturalSize.height - cropOffY - (assetVideoTrack.naturalSize.height - cropHeight))
+            t1 = CGAffineTransform(translationX: naturalSize.width - cropOffX - (naturalSize.width - naturalSize.width * scale),
+                                   y: naturalSize.height - cropOffY - (naturalSize.height - naturalSize.height * scale))
             t2 = t1.rotated(by: CGFloat(M_PI))
             break
             
@@ -123,9 +127,6 @@ class VideoEditor: NSObject {
             
         }
         
-        let naturalSize = assetVideoTrack.naturalSize
-        let renderSize = min(naturalSize.width, naturalSize.height)
-        let scale = min(cropWidth, cropHeight) / renderSize
         let t3: CGAffineTransform = t2.scaledBy(x: scale, y: scale)
         let finalTransform: CGAffineTransform = t3
         

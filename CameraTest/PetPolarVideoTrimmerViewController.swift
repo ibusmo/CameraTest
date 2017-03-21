@@ -312,7 +312,7 @@ extension PetPolarVideoTrimmerViewController: ICGVideoTrimmerDelegate {
     func trimVideo() {
         
         let cropRect: CGRect = CGRect(x: 0.0, y: 0.0, width: 480.0, height: 480.0)
-        VideoEditor.crop(asset: self.asset!, delegate: self)
+        VideoEditor.crop(asset: self.asset!, cropRect: cropRect, delegate: self)
         
         return
         
